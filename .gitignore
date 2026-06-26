@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+logs/*.log
+*.js.map
+coverage/
+.DS_Store
+Thumbs.db
+uploads/
+*.key
+*.pem
+google-credentials.json

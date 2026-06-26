@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\.0ed4c817bedc72a289da0e520aa021d1e5578e8c-audit.json",
+    "files": [
+        {
+            "date": 1782428498287,
+            "name": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\error-2026-06-26.log",
+            "hash": "47f4f1aedfae8bbce06ccdd266ae4ce6207883350ff57f890b85159e0be22750"
+        }
+    ],
+    "hashType": "sha256"
+}

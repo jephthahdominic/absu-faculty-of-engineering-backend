@@ -1,0 +1,840 @@
+{
+  "info": {
+    "name": "ABSU Faculty Management System API",
+    "description": "Complete API collection for Abia State University Faculty Management System",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "departmentId", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" },
+    { "key": "lecturerId", "value": "", "type": "string" },
+    { "key": "publicationId", "value": "", "type": "string" },
+    { "key": "lectureNoteId", "value": "", "type": "string" },
+    { "key": "newsId", "value": "", "type": "string" },
+    { "key": "eventId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login (Super Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('accessToken', res.data.tokens.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', res.data.tokens.refreshToken);",
+                  "  pm.test('Login successful', () => pm.expect(res.success).to.be.true);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@absu.edu.ng\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login (Department Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin.csc@absu.edu.ng\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login (Student)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student1.csc@absu.edu.ng\",\n  \"password\": \"Student@123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/refresh-token", "host": ["{{baseUrl}}"], "path": ["auth", "refresh-token"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        },
+        {
+          "name": "Logout All Sessions",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout-all", "host": ["{{baseUrl}}"], "path": ["auth", "logout-all"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Admin@123456\",\n  \"newPassword\": \"NewAdmin@123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/change-password", "host": ["{{baseUrl}}"], "path": ["auth", "change-password"] }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@absu.edu.ng\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["auth", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"YOUR_RESET_TOKEN_HERE\",\n  \"newPassword\": \"NewAdmin@123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["auth", "reset-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/dashboard/stats", "host": ["{{baseUrl}}"], "path": ["dashboard", "stats"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Departments",
+      "item": [
+        {
+          "name": "Get All Departments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/departments?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["departments"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Department by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/departments/{{departmentId}}", "host": ["{{baseUrl}}"], "path": ["departments", "{{departmentId}}"] }
+          }
+        },
+        {
+          "name": "Create Department",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('departmentId', res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Electrical Engineering\",\n  \"code\": \"EEE\",\n  \"description\": \"Department of Electrical and Electronics Engineering - focusing on electrical systems, electronics, and power.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/departments", "host": ["{{baseUrl}}"], "path": ["departments"] }
+          }
+        },
+        {
+          "name": "Update Department",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated department description\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/departments/{{departmentId}}", "host": ["{{baseUrl}}"], "path": ["departments", "{{departmentId}}"] }
+          }
+        },
+        {
+          "name": "Delete Department",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/departments/{{departmentId}}", "host": ["{{baseUrl}}"], "path": ["departments", "{{departmentId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/profile", "host": ["{{baseUrl}}"], "path": ["users", "profile"] }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Full Name\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/profile", "host": ["{{baseUrl}}"], "path": ["users", "profile"] }
+          }
+        },
+        {
+          "name": "Upload Profile Image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "image", "type": "file", "src": "/path/to/image.jpg" }]
+            },
+            "url": { "raw": "{{baseUrl}}/users/profile/image", "host": ["{{baseUrl}}"], "path": ["users", "profile", "image"] }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "departmentId", "value": "", "disabled": true },
+                { "key": "level", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create User (Department Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('userId', res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Dr. John Doe\",\n  \"email\": \"admin.new@absu.edu.ng\",\n  \"password\": \"Admin@123456\",\n  \"role\": \"department_admin\",\n  \"departmentId\": \"{{departmentId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Jane Student\",\n  \"email\": \"student.new@absu.edu.ng\",\n  \"password\": \"Student@123456\",\n  \"role\": \"student\",\n  \"departmentId\": \"{{departmentId}}\",\n  \"matricNumber\": \"CSC/2024/001\",\n  \"level\": \"100\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true,\n  \"level\": \"200\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lecturers",
+      "item": [
+        {
+          "name": "Get All Lecturers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/lecturers?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["lecturers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "departmentId", "value": "", "disabled": true },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Lecturer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('lecturerId', res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Prof.\",\n  \"lastName\": \"Chukwu\",\n  \"email\": \"prof.chukwu@absu.edu.ng\",\n  \"designation\": \"Professor of Computer Science\",\n  \"bio\": \"Experienced professor with 20 years in academia\",\n  \"departmentId\": \"{{departmentId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/lecturers", "host": ["{{baseUrl}}"], "path": ["lecturers"] }
+          }
+        },
+        {
+          "name": "Get Lecturer by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/lecturers/{{lecturerId}}", "host": ["{{baseUrl}}"], "path": ["lecturers", "{{lecturerId}}"] }
+          }
+        },
+        {
+          "name": "Update Lecturer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"designation\": \"Associate Professor\",\n  \"bio\": \"Updated bio\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/lecturers/{{lecturerId}}", "host": ["{{baseUrl}}"], "path": ["lecturers", "{{lecturerId}}"] }
+          }
+        },
+        {
+          "name": "Upload Lecturer Profile Image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "image", "type": "file", "src": "/path/to/image.jpg" }]
+            },
+            "url": { "raw": "{{baseUrl}}/lecturers/{{lecturerId}}/profile-image", "host": ["{{baseUrl}}"], "path": ["lecturers", "{{lecturerId}}", "profile-image"] }
+          }
+        },
+        {
+          "name": "Delete Lecturer",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/lecturers/{{lecturerId}}", "host": ["{{baseUrl}}"], "path": ["lecturers", "{{lecturerId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Publications",
+      "item": [
+        {
+          "name": "Get All Publications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/publications?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["publications"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "departmentId", "value": "", "disabled": true },
+                { "key": "publicationYear", "value": "", "disabled": true },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Publication",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('publicationId', res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Deep Learning Approaches in Medical Image Analysis\",\n  \"journal\": \"Journal of Biomedical Informatics\",\n  \"publicationYear\": 2024,\n  \"publicationUrl\": \"https://doi.org/10.1016/example\",\n  \"authors\": [\"Prof. Chukwu\", \"Dr. Eze\", \"Dr. Okafor\"],\n  \"lecturerId\": \"{{lecturerId}}\",\n  \"departmentId\": \"{{departmentId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/publications", "host": ["{{baseUrl}}"], "path": ["publications"] }
+          }
+        },
+        {
+          "name": "Get Publication by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/publications/{{publicationId}}", "host": ["{{baseUrl}}"], "path": ["publications", "{{publicationId}}"] }
+          }
+        },
+        {
+          "name": "Update Publication",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"publicationYear\": 2025\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/publications/{{publicationId}}", "host": ["{{baseUrl}}"], "path": ["publications", "{{publicationId}}"] }
+          }
+        },
+        {
+          "name": "Delete Publication",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/publications/{{publicationId}}", "host": ["{{baseUrl}}"], "path": ["publications", "{{publicationId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lecture Notes",
+      "item": [
+        {
+          "name": "Get All Lecture Notes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/lecture-notes?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["lecture-notes"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "level", "value": "300", "disabled": true },
+                { "key": "semester", "value": "first", "disabled": true },
+                { "key": "departmentId", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Lecture Note (with file upload)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('lectureNoteId', res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "/path/to/lecture-note.pdf" },
+                { "key": "title", "value": "Introduction to Data Structures", "type": "text" },
+                { "key": "courseCode", "value": "CSC301", "type": "text" },
+                { "key": "level", "value": "300", "type": "text" },
+                { "key": "semester", "value": "first", "type": "text" },
+                { "key": "lecturerId", "value": "{{lecturerId}}", "type": "text" },
+                { "key": "departmentId", "value": "{{departmentId}}", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/lecture-notes", "host": ["{{baseUrl}}"], "path": ["lecture-notes"] }
+          }
+        },
+        {
+          "name": "Get Lecture Note by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/lecture-notes/{{lectureNoteId}}", "host": ["{{baseUrl}}"], "path": ["lecture-notes", "{{lectureNoteId}}"] }
+          }
+        },
+        {
+          "name": "Update Lecture Note",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title", "value": "Updated: Introduction to Data Structures", "type": "text" },
+                { "key": "file", "type": "file", "src": "/path/to/updated-note.pdf", "disabled": true }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/lecture-notes/{{lectureNoteId}}", "host": ["{{baseUrl}}"], "path": ["lecture-notes", "{{lectureNoteId}}"] }
+          }
+        },
+        {
+          "name": "Delete Lecture Note",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/lecture-notes/{{lectureNoteId}}", "host": ["{{baseUrl}}"], "path": ["lecture-notes", "{{lectureNoteId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "News",
+      "item": [
+        {
+          "name": "Get All News",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/news?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["news"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "isPublished", "value": "true", "disabled": true },
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "departmentId", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create News (with image upload)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('newsId', res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": "/path/to/news-image.jpg" },
+                { "key": "title", "value": "Department Hosts Annual Science Fair 2025", "type": "text" },
+                { "key": "content", "value": "The Computer Science department is proud to announce the Annual Science Fair 2025. Students are invited to showcase their projects.", "type": "text" },
+                { "key": "category", "value": "Events", "type": "text" },
+                { "key": "isPublished", "value": "true", "type": "text" },
+                { "key": "departmentId", "value": "{{departmentId}}", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/news", "host": ["{{baseUrl}}"], "path": ["news"] }
+          }
+        },
+        {
+          "name": "Get News by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/news/{{newsId}}", "host": ["{{baseUrl}}"], "path": ["news", "{{newsId}}"] }
+          }
+        },
+        {
+          "name": "Get News by Slug",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/news/slug/department-hosts-annual-science-fair-2025", "host": ["{{baseUrl}}"], "path": ["news", "slug", "department-hosts-annual-science-fair-2025"] }
+          }
+        },
+        {
+          "name": "Update News",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "isPublished", "value": "true", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/news/{{newsId}}", "host": ["{{baseUrl}}"], "path": ["news", "{{newsId}}"] }
+          }
+        },
+        {
+          "name": "Delete News",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/news/{{newsId}}", "host": ["{{baseUrl}}"], "path": ["news", "{{newsId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Get All Events",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/events?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "isPublished", "value": "true", "disabled": true },
+                { "key": "departmentId", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Event (with image upload)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('eventId', res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": "/path/to/event-image.jpg" },
+                { "key": "title", "value": "Annual Computer Science Symposium 2025", "type": "text" },
+                { "key": "description", "value": "Join us for the Annual CS Symposium featuring research presentations, workshops, and networking opportunities.", "type": "text" },
+                { "key": "venue", "value": "ABSU Main Auditorium, Uturu", "type": "text" },
+                { "key": "eventDate", "value": "2025-12-15T09:00:00.000Z", "type": "text" },
+                { "key": "isPublished", "value": "true", "type": "text" },
+                { "key": "departmentId", "value": "{{departmentId}}", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/events", "host": ["{{baseUrl}}"], "path": ["events"] }
+          }
+        },
+        {
+          "name": "Get Event by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["events", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "venue", "value": "Updated Venue", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["events", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["events", "{{eventId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:5000/health", "host": ["http://localhost:5000"], "path": ["health"] }
+          }
+        },
+        {
+          "name": "Swagger Docs",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/docs", "host": ["{{baseUrl}}"], "path": ["docs"] }
+          }
+        }
+      ]
+    }
+  ]
+}
