@@ -172,6 +172,9 @@ class UserService {
     if (!user) {
       throw new AppError('User not found', HTTP_STATUS.NOT_FOUND);
     }
+    if(user.role === ROLES.SUPER_ADMIN) {
+      throw new AppError('Cannot delete super admin', HTTP_STATUS.FORBIDDEN);
+    }
     await userRepository.deleteById(id);
     logger.info(`User deleted: ${id}`);
   }
