@@ -10,6 +10,7 @@ import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { ROLES } from '../constants/roles';
+
 import {
   createStudentValidator,
   createStudentsBulkValidator,
@@ -21,7 +22,7 @@ import {
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN));
+router.use(authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN));
 
 /**
  * @swagger

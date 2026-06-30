@@ -52,6 +52,39 @@ class EmailService {
     logger.info(`Password reset email sent to: ${to}`);
   }
 
+  async sendDeanCredentialsEmail(to: string, name: string, password: string): Promise<void> {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">Dean Account Created — ABSU Faculty Management</h2>
+        <p>Dear ${name},</p>
+        <p>Your Dean account has been created by the Super Administrator.</p>
+        <p>Use the credentials below to log in:</p>
+        <table style="border-collapse: collapse; width: 100%; margin: 16px 0;">
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Email</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${to}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Password</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${password}</td>
+          </tr>
+        </table>
+        <p style="color: #e53e3e;"><strong>Please change your password immediately after your first login.</strong></p>
+        <hr/>
+        <p style="color: #666; font-size: 12px;">ABSU Faculty Management System</p>
+      </div>
+    `;
+
+    await this.transporter.sendMail({
+      from: env.EMAIL_FROM,
+      to,
+      subject: 'Dean Account Credentials — ABSU Faculty Management',
+      html,
+    });
+
+    logger.info(`Dean credentials email sent to: ${to}`);
+  }
+
   async sendWelcomeEmail(to: string, name: string, role: string): Promise<void> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

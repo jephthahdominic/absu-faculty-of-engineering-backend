@@ -6,7 +6,7 @@ import { AUTH_MESSAGES } from '../constants/messages';
 import { ROLES } from '../constants/roles';
 
 export const loginAdmin = asyncHandler(async (req: Request, res: Response) => {
-  const result = await authService.login(req.body, [ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN]);
+  const result = await authService.login(req.body, [ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN]);
   sendSuccess(res, AUTH_MESSAGES.LOGIN_SUCCESS, result);
 });
 

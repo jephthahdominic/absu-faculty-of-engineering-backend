@@ -91,6 +91,25 @@ export const UPLOAD_MESSAGES = {
   TOO_LARGE: 'File too large',
 };
 
+export const DEAN_MESSAGES = {
+  CREATED: 'Dean account created successfully',
+  DELETED: 'Dean account deleted successfully',
+  FETCHED: 'Dean fetched successfully',
+  NOT_FOUND: 'Dean not found',
+  ALREADY_EXISTS: 'A dean account already exists',
+  CANNOT_DELETE_SELF: 'You cannot delete your own account',
+  CANNOT_DELETE_SUPER_ADMIN: 'You cannot delete the super admin account',
+};
+
+export const ACADEMIC_SESSION_MESSAGES = {
+  UPDATED: 'Academic session updated successfully',
+  FETCHED: 'Academic session fetched successfully',
+  NOT_FOUND: 'No active academic session found',
+  LEVELS_UPDATED: 'Student levels updated successfully',
+  INVALID_FORMAT: 'Session must be in format YYYY/YYYY (e.g. 2026/2027)',
+  INVALID_YEARS: 'Session end year must be exactly one year after start year',
+};
+
 export const COMMON_MESSAGES = {
   VALIDATION_ERROR: 'Validation error',
   INTERNAL_SERVER_ERROR: 'Internal server error',

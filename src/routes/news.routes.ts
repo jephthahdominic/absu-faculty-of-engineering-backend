@@ -28,7 +28,7 @@ router.get('/:id', getNewsValidator, validate, newsController.getNewsById);
 router.post(
   '/',
   authenticate,
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   uploadRateLimiter,
   uploadImage,
   createNewsValidator,
@@ -39,7 +39,7 @@ router.post(
 router.put(
   '/:id',
   authenticate,
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   uploadRateLimiter,
   uploadOptionalImage,
   updateNewsValidator,
@@ -50,7 +50,7 @@ router.put(
 router.delete(
   '/:id',
   authenticate,
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   getNewsValidator,
   validate,
   newsController.deleteNews,

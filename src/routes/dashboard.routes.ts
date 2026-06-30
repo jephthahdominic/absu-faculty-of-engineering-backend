@@ -54,7 +54,7 @@ const router = Router();
 router.get(
   '/stats',
   authenticate,
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   dashboardController.getDashboardStats,
 );
 

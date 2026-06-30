@@ -28,7 +28,7 @@ router.get('/:id', getLecturerValidator, validate, lecturerController.getLecture
 
 router.post(
   '/',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   createLecturerValidator,
   validate,
   lecturerController.createLecturer,
@@ -36,7 +36,7 @@ router.post(
 
 router.put(
   '/:id',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   updateLecturerValidator,
   validate,
   lecturerController.updateLecturer,
@@ -44,7 +44,7 @@ router.put(
 
 router.delete(
   '/:id',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   getLecturerValidator,
   validate,
   lecturerController.deleteLecturer,
@@ -52,7 +52,7 @@ router.delete(
 
 router.post(
   '/:id/profile-image',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   uploadRateLimiter,
   uploadImage,
   lecturerController.updateLecturerProfileImage,

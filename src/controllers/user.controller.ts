@@ -3,7 +3,7 @@ import { userService } from '../services/user.service';
 import { sendSuccess, sendCreated, sendPaginated } from '../utils/response.util';
 import { asyncHandler } from '../utils/asyncHandler.util';
 import { parsePaginationQuery } from '../utils/pagination.util';
-import { USER_MESSAGES } from '../constants/messages';
+import { DEAN_MESSAGES, USER_MESSAGES } from '../constants/messages';
 import { Role } from '../constants/roles';
 
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
@@ -38,8 +38,18 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
-  await userService.deleteUser(req.params.id);
+  await userService.deleteUser(req.params.id, req.user!._id.toString(), req.user!.role as Role);
   sendSuccess(res, USER_MESSAGES.DELETED);
+});
+
+export const getDean = asyncHandler(async (req: Request, res: Response) => {
+  const dean = await userService.getDean();
+  sendSuccess(res, DEAN_MESSAGES.FETCHED, dean);
+});
+
+export const deleteDean = asyncHandler(async (req: Request, res: Response) => {
+  await userService.deleteDean(req.params.id, req.user!.role as Role);
+  sendSuccess(res, DEAN_MESSAGES.DELETED);
 });
 
 export const updateProfileImage = asyncHandler(async (req: Request, res: Response) => {

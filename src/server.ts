@@ -11,7 +11,7 @@ const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
 
-    server.listen(env.PORT, () => {
+    server.listen(env.PORT, "127.0.0.1", () => {
       logger.info(`Server running in ${env.NODE_ENV} mode on port ${env.PORT}`);
       logger.info(`API Base URL: http://localhost:${env.PORT}${env.API_PREFIX}`);
       logger.info(`Swagger Docs: http://localhost:${env.PORT}${env.API_PREFIX}/docs`);

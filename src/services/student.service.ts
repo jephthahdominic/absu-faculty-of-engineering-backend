@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { FilterQuery } from 'mongoose';
 import { studentRepository } from '../repositories/student.repository';
 import { departmentRepository } from '../repositories/department.repository';
+import { academicSessionRepository } from '../repositories/academicSession.repository';
 import { IStudentDocument, IStudentResponse } from '../interfaces/student.interface';
 import { IPaginationQuery, IPaginationResult } from '../interfaces/pagination.interface';
 import { buildPaginationResult } from '../utils/pagination.util';
@@ -9,8 +10,21 @@ import { logger } from '../utils/logger.util';
 import { AppError } from './auth.service';
 import { HTTP_STATUS } from '../constants/httpStatus';
 import { ROLES, Role } from '../constants/roles';
+import { IDepartment } from '@/interfaces/department.interface';
 
 class StudentService {
+  private parseEnrollmentYear(matricNumber: string): number {
+    const year = parseInt(matricNumber.split('/')[0], 10);
+    if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+      throw new AppError('Invalid matric number format: cannot determine enrollment year', HTTP_STATUS.BAD_REQUEST);
+    }
+    return year;
+  }
+
+  private calculateLevel(enrollmentYear: number, sessionStartYear: number): string {
+    return String((sessionStartYear - enrollmentYear + 1) * 100);
+  }
+
   private mapToResponse(student: IStudentDocument): IStudentResponse {
     const obj = student.toJSON() as unknown as IStudentDocument & { createdAt?: Date; updatedAt?: Date };
     return {
@@ -20,7 +34,7 @@ class StudentService {
       role: student.role,
       matricNumber: student.matricNumber,
       level: student.level,
-      departmentId: student.departmentId.toString(),
+      departmentId: student.departmentId as IDepartment | Types.ObjectId,
       profileImage: student.profileImage,
       isActive: student.isActive,
       lastLogin: student.lastLogin,
@@ -35,7 +49,6 @@ class StudentService {
       email: string;
       password: string;
       matricNumber: string;
-      level: string;
       departmentId: string;
     },
     requesterRole: Role,
@@ -44,6 +57,9 @@ class StudentService {
     if (requesterRole === ROLES.DEPARTMENT_ADMIN && data.departmentId !== requesterDeptId) {
       throw new AppError('You can only add students to your department', HTTP_STATUS.FORBIDDEN);
     }
+
+    const activeSession = await academicSessionRepository.findActive();
+    if (!activeSession) throw new AppError('No active academic session found', HTTP_STATUS.BAD_REQUEST);
 
     const dept = await departmentRepository.findById(data.departmentId);
     if (!dept) throw new AppError('Department not found', HTTP_STATUS.NOT_FOUND);
@@ -54,12 +70,15 @@ class StudentService {
     const matricExists = await studentRepository.findByMatricNumber(data.matricNumber);
     if (matricExists) throw new AppError('Matriculation number already in use', HTTP_STATUS.CONFLICT);
 
+    const enrollmentYear = this.parseEnrollmentYear(data.matricNumber);
+    const level = this.calculateLevel(enrollmentYear, activeSession.startYear);
+
     const student = await studentRepository.create({
       fullName: data.fullName,
       email: data.email,
       password: data.password,
       matricNumber: data.matricNumber,
-      level: data.level,
+      level,
       departmentId: new Types.ObjectId(data.departmentId),
       isActive: true,
     });
@@ -74,7 +93,6 @@ class StudentService {
       email: string;
       password: string;
       matricNumber: string;
-      level: string;
       departmentId: string;
     }>,
     requesterRole: Role,

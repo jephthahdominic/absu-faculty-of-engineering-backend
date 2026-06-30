@@ -1,17 +1,22 @@
 import { body, param, query } from 'express-validator';
 import { ROLES } from '../constants/roles';
 
-const ADMIN_ROLES = [ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN];
+const CREATABLE_ROLES = [ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN];
+
+export const getDeanValidator = [
+  param('id').isMongoId().withMessage('Invalid dean ID'),
+];
 
 export const createUserValidator = [
   body('fullName').trim().notEmpty().withMessage('Full name is required').isLength({ min: 2, max: 100 }).withMessage('Full name must be 2-100 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password')
+    .optional()
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain uppercase, lowercase and number'),
   body('role')
-    .isIn(ADMIN_ROLES)
-    .withMessage(`Role must be one of: ${ADMIN_ROLES.join(', ')}`),
+    .isIn(CREATABLE_ROLES)
+    .withMessage(`Role must be one of: ${CREATABLE_ROLES.join(', ')}`),
   body('departmentId').optional().isMongoId().withMessage('Invalid department ID'),
 ];
 

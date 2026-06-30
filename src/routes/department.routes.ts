@@ -9,7 +9,7 @@ import * as deptController from '../controllers/department.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
 import { validate } from '../middlewares/validate.middleware';
-import { ROLES } from '../constants/roles';
+import { ROLES, SUPER_LEVEL_ROLES } from '../constants/roles';
 import {
   createDepartmentValidator,
   updateDepartmentValidator,
@@ -91,7 +91,7 @@ router.get('/:id', getDepartmentValidator, validate, deptController.getDepartmen
  *       201:
  *         description: Department created
  */
-router.post('/', authorize(ROLES.SUPER_ADMIN), createDepartmentValidator, validate, deptController.createDepartment);
+router.post('/', authorize(...SUPER_LEVEL_ROLES), createDepartmentValidator, validate, deptController.createDepartment);
 
 /**
  * @swagger
@@ -117,7 +117,7 @@ router.post('/', authorize(ROLES.SUPER_ADMIN), createDepartmentValidator, valida
  *       200:
  *         description: Department updated
  */
-router.put('/:id', authorize(ROLES.SUPER_ADMIN), updateDepartmentValidator, validate, deptController.updateDepartment);
+router.put('/:id', authorize(...SUPER_LEVEL_ROLES), updateDepartmentValidator, validate, deptController.updateDepartment);
 
 /**
  * @swagger
@@ -134,6 +134,6 @@ router.put('/:id', authorize(ROLES.SUPER_ADMIN), updateDepartmentValidator, vali
  *       200:
  *         description: Department deleted
  */
-router.delete('/:id', authorize(ROLES.SUPER_ADMIN), getDepartmentValidator, validate, deptController.deleteDepartment);
+router.delete('/:id', authorize(...SUPER_LEVEL_ROLES), getDepartmentValidator, validate, deptController.deleteDepartment);
 
 export default router;

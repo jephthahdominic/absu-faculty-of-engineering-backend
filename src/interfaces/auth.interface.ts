@@ -1,15 +1,17 @@
 import { Types } from 'mongoose';
 import { IUserResponse } from './user.interface';
+import { IDepartment } from './department.interface';
 
 export interface IAuthUser {
   _id: Types.ObjectId;
   role: string;
-  departmentId?: Types.ObjectId;
+  departmentId?: Types.ObjectId | IDepartment;
   isActive: boolean;
 }
 
 export interface ILoginPayload {
   email: string;
+  matricNo:string;
   password: string;
 }
 

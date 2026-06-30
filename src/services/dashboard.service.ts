@@ -30,7 +30,7 @@ interface DepartmentAdminStats {
 
 class DashboardService {
   async getStats(role: Role, departmentId?: string): Promise<SuperAdminStats | DepartmentAdminStats> {
-    if (role === ROLES.SUPER_ADMIN) {
+    if (role === ROLES.SUPER_ADMIN || role === ROLES.DEAN) {
       return this.getSuperAdminStats();
     }
     return this.getDepartmentAdminStats(departmentId!);

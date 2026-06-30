@@ -10,7 +10,7 @@ const userSchema = new Schema<IUserDocument>(
     password: { type: String, required: true, minlength: 8, select: false },
     role: {
       type: String,
-      enum: [ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN],
+      enum: [ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN],
       required: true,
     },
     departmentId: { type: Schema.Types.ObjectId, ref: 'Department', default: null },

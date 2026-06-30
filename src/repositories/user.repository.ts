@@ -8,8 +8,12 @@ export class UserRepository extends BaseRepository<IUserDocument> {
     super(UserModel);
   }
 
+  async findById(id: string): Promise<IUserDocument | null> {
+    return UserModel.findById(id).populate('departmentId').exec();
+  }
+
   async findByEmail(email: string): Promise<IUserDocument | null> {
-    return UserModel.findOne({ email: email.toLowerCase() }).select('+password').exec();
+    return UserModel.findOne({ email: email.toLowerCase() }).select('+password').populate('departmentId').exec();
   }
 
   async findByEmailWithoutPassword(email: string): Promise<IUserDocument | null> {

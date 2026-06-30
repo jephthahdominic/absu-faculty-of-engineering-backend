@@ -2,13 +2,15 @@ import { Types } from 'mongoose';
 import { userRepository } from '../repositories/user.repository';
 import { departmentRepository } from '../repositories/department.repository';
 import { r2Service } from './r2.service';
+import { emailService } from './email.service';
 import { IUserDocument, IUserResponse } from '../interfaces/user.interface';
+import { IDepartment } from '../interfaces/department.interface';
 import { IPaginationQuery, IPaginationResult } from '../interfaces/pagination.interface';
 import { buildPaginationResult } from '../utils/pagination.util';
 import { logger } from '../utils/logger.util';
 import { AppError } from './auth.service';
 import { HTTP_STATUS } from '../constants/httpStatus';
-import { ROLES, Role } from '../constants/roles';
+import { ROLES, SUPER_LEVEL_ROLES, Role } from '../constants/roles';
 import { FilterQuery } from 'mongoose';
 
 class UserService {
@@ -18,7 +20,7 @@ class UserService {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
-      departmentId: user.departmentId?.toString(),
+      departmentId: user.departmentId as IDepartment | undefined,
       matricNumber: user.matricNumber,
       level: user.level,
       profileImage: user.profileImage,
@@ -27,6 +29,28 @@ class UserService {
       createdAt: (user as unknown as { createdAt?: Date }).createdAt,
       updatedAt: (user as unknown as { updatedAt?: Date }).updatedAt,
     };
+  }
+
+  private generatePassword(): string {
+    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lower = 'abcdefghijklmnopqrstuvwxyz';
+    const digits = '0123456789';
+    const special = '@#$!';
+    const all = upper + lower + digits + special;
+    let password =
+      upper[Math.floor(Math.random() * upper.length)] +
+      lower[Math.floor(Math.random() * lower.length)] +
+      digits[Math.floor(Math.random() * digits.length)] +
+      special[Math.floor(Math.random() * special.length)];
+    for (let i = 4; i < 12; i++) {
+      password += all[Math.floor(Math.random() * all.length)];
+    }
+    return password.split('').sort(() => Math.random() - 0.5).join('');
+  }
+
+  async getDean(): Promise<IUserResponse | null> {
+    const dean = await userRepository.findOne({ role: ROLES.DEAN });
+    return dean ? this.mapToResponse(dean) : null;
   }
 
   async createUser(
@@ -46,15 +70,43 @@ class UserService {
       throw new AppError('Email already in use', HTTP_STATUS.CONFLICT);
     }
 
+    if (data.role === ROLES.DEAN) {
+      if (creatorRole !== ROLES.SUPER_ADMIN) {
+        throw new AppError('Only the super admin can create a dean account', HTTP_STATUS.FORBIDDEN);
+      }
+      const existingDean = await userRepository.findOne({ role: ROLES.DEAN });
+      if (existingDean) {
+        throw new AppError('A dean account already exists', HTTP_STATUS.CONFLICT);
+      }
+      const dean = await userRepository.create({
+        fullName: data.fullName.trim(),
+        email: data.email.trim().toLowerCase(),
+        password: data.password.trim(),
+        role: ROLES.DEAN,
+        isActive: true,
+      });
+      try {
+        await emailService.sendDeanCredentialsEmail(dean.email, dean.fullName, data.password);
+      } catch (error) {
+        logger.error(`Failed to send dean credentials email: ${error}`);
+      }
+      logger.info(`Dean account created: ${dean.email}`);
+      return this.mapToResponse(dean);
+    }
+
+    if (data.role === ROLES.SUPER_ADMIN && !(SUPER_LEVEL_ROLES as readonly string[]).includes(creatorRole)) {
+      throw new AppError('Only super admin can create super admin accounts', HTTP_STATUS.FORBIDDEN);
+    }
+
+    if (!data.password) {
+      throw new AppError('Password is required', HTTP_STATUS.BAD_REQUEST);
+    }
+
     if (data.matricNumber) {
       const matricExists = await userRepository.findByMatricNumber(data.matricNumber);
       if (matricExists) {
         throw new AppError('Matriculation number already in use', HTTP_STATUS.CONFLICT);
       }
-    }
-
-    if (data.role === ROLES.SUPER_ADMIN && creatorRole !== ROLES.SUPER_ADMIN) {
-      throw new AppError('Only super admin can create super admin accounts', HTTP_STATUS.FORBIDDEN);
     }
 
     if (data.departmentId) {
@@ -167,16 +219,41 @@ class UserService {
     return this.mapToResponse(updated!);
   }
 
-  async deleteUser(id: string): Promise<void> {
+  async deleteUser(id: string, deleterId: string, deleterRole: Role): Promise<void> {
     const user = await userRepository.findById(id);
     if (!user) {
       throw new AppError('User not found', HTTP_STATUS.NOT_FOUND);
     }
-    if(user.role === ROLES.SUPER_ADMIN) {
-      throw new AppError('Cannot delete super admin', HTTP_STATUS.FORBIDDEN);
+
+    if (user.role === ROLES.SUPER_ADMIN) {
+      throw new AppError('Cannot delete the super admin account', HTTP_STATUS.FORBIDDEN);
     }
+
+    if (deleterRole === ROLES.DEAN) {
+      if (id === deleterId) {
+        throw new AppError('You cannot delete your own account', HTTP_STATUS.FORBIDDEN);
+      }
+      if (user.role === ROLES.DEAN) {
+        throw new AppError('Cannot delete another dean account', HTTP_STATUS.FORBIDDEN);
+      }
+    }
+
     await userRepository.deleteById(id);
-    logger.info(`User deleted: ${id}`);
+    logger.info(`User deleted: ${id} by ${deleterId}`);
+  }
+
+  async deleteDean(deanId: string, deleterRole: Role): Promise<void> {
+    if (deleterRole !== ROLES.SUPER_ADMIN) {
+      throw new AppError('Only the super admin can delete the dean account', HTTP_STATUS.FORBIDDEN);
+    }
+
+    const dean = await userRepository.findById(deanId);
+    if (!dean || dean.role !== ROLES.DEAN) {
+      throw new AppError('Dean not found', HTTP_STATUS.NOT_FOUND);
+    }
+
+    await userRepository.deleteById(deanId);
+    logger.info(`Dean deleted: ${deanId}`);
   }
 
   async updateProfileImage(userId: string, file: Express.Multer.File): Promise<IUserResponse> {

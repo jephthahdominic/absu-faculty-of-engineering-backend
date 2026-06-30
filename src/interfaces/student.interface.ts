@@ -1,4 +1,5 @@
 import { Document, Types } from 'mongoose';
+import { IDepartment } from './department.interface';
 
 export interface IStudent {
   fullName: string;
@@ -7,7 +8,7 @@ export interface IStudent {
   role: string;
   matricNumber: string;
   level: string;
-  departmentId: Types.ObjectId;
+  departmentId: Types.ObjectId | IDepartment;
   profileImage?: string;
   profileImageId?: string;
   isActive: boolean;
@@ -28,7 +29,7 @@ export interface IStudentResponse {
   role: string;
   matricNumber: string;
   level: string;
-  departmentId: string;
+  departmentId: IDepartment | Types.ObjectId;
   profileImage?: string | null;
   isActive: boolean;
   lastLogin?: Date | null;

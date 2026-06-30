@@ -8,6 +8,10 @@ export class StudentRepository extends BaseRepository<IStudentDocument> {
     super(StudentModel);
   }
 
+  async findById(id: string): Promise<IStudentDocument | null> {
+    return StudentModel.findById(id).populate('departmentId').exec();
+  }
+
   async findByEmail(email: string): Promise<IStudentDocument | null> {
     return StudentModel.findOne({ email: email.toLowerCase() }).select('+password').exec();
   }
@@ -17,7 +21,7 @@ export class StudentRepository extends BaseRepository<IStudentDocument> {
   }
 
   async findByMatricNumber(matricNumber: string): Promise<IStudentDocument | null> {
-    return StudentModel.findOne({ matricNumber }).exec();
+    return StudentModel.findOne({ matricNumber }).select('+password').populate('departmentId').exec();
   }
 
   async findByIdWithPassword(id: string): Promise<IStudentDocument | null> {

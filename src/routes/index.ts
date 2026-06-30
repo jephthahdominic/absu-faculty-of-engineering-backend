@@ -9,6 +9,7 @@ import lectureNoteRoutes from './lectureNote.routes';
 import newsRoutes from './news.routes';
 import eventRoutes from './event.routes';
 import dashboardRoutes from './dashboard.routes';
+import academicSessionRoutes from './academicSession.routes';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/lecture-notes', lectureNoteRoutes);
 router.use('/news', newsRoutes);
 router.use('/events', eventRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/academic-session', academicSessionRoutes);
 
 export default router;

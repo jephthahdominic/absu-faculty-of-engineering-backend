@@ -28,7 +28,7 @@ router.get('/:id', getEventValidator, validate, eventController.getEventById);
 
 router.post(
   '/',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   uploadRateLimiter,
   uploadImage,
   createEventValidator,
@@ -38,7 +38,7 @@ router.post(
 
 router.put(
   '/:id',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   uploadRateLimiter,
   uploadOptionalImage,
   updateEventValidator,
@@ -48,7 +48,7 @@ router.put(
 
 router.delete(
   '/:id',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   getEventValidator,
   validate,
   eventController.deleteEvent,

@@ -1,12 +1,13 @@
 import { Document, Types } from 'mongoose';
 import { Role } from '../constants/roles';
+import { IDepartment } from './department.interface';
 
 export interface IUser {
   fullName: string;
   email: string;
   password: string;
   role: Role;
-  departmentId?: Types.ObjectId;
+  departmentId?: Types.ObjectId | IDepartment;
   matricNumber?: string;
   level?: string;
   profileImage?: string;
@@ -27,7 +28,7 @@ export interface IUserResponse {
   fullName: string;
   email: string;
   role: Role;
-  departmentId?: string;
+  departmentId?: IDepartment;
   matricNumber?: string;
   level?: string;
   profileImage?: string;

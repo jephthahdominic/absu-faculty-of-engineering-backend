@@ -6,11 +6,12 @@ export const createPublicationValidator = [
   body('publicationYear')
     .isInt({ min: 1900, max: new Date().getFullYear() + 1 })
     .withMessage(`Publication year must be between 1900 and ${new Date().getFullYear() + 1}`),
-  body('publicationUrl').isURL().withMessage('Valid publication URL is required'),
-  body('authors')
-    .isArray({ min: 1 })
-    .withMessage('At least one author is required'),
-  body('authors.*').trim().notEmpty().withMessage('Author name cannot be empty'),
+  body('publicationUrl').optional().isURL().withMessage('Valid publication URL is required'),
+  body('authors').custom((value) => {
+    if (typeof value === 'string' && value.trim().length > 0) return true;
+    if (Array.isArray(value) && value.length > 0) return true;
+    throw new Error('At least one author is required');
+  }),
   body('lecturerId').isMongoId().withMessage('Valid lecturer ID is required'),
   body('departmentId').isMongoId().withMessage('Valid department ID is required'),
 ];

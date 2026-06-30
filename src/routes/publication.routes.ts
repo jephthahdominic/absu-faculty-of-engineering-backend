@@ -16,6 +16,7 @@ import {
   getPublicationValidator,
   getPublicationsValidator,
 } from '../validators/publication.validator';
+import { uploadDocument } from '../middlewares/upload.middleware';
 
 const router = Router();
 
@@ -26,7 +27,8 @@ router.get('/:id', getPublicationValidator, validate, pubController.getPublicati
 
 router.post(
   '/',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
+  uploadDocument,
   createPublicationValidator,
   validate,
   pubController.createPublication,
@@ -34,7 +36,8 @@ router.post(
 
 router.put(
   '/:id',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
+  uploadDocument,
   updatePublicationValidator,
   validate,
   pubController.updatePublication,
@@ -42,7 +45,7 @@ router.put(
 
 router.delete(
   '/:id',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   getPublicationValidator,
   validate,
   pubController.deletePublication,

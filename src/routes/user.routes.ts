@@ -11,12 +11,13 @@ import { authorize } from '../middlewares/authorize.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { uploadImage } from '../middlewares/upload.middleware';
 import { uploadRateLimiter } from '../middlewares/rateLimiter.middleware';
-import { ROLES } from '../constants/roles';
+import { ROLES, SUPER_LEVEL_ROLES } from '../constants/roles';
 import {
   createUserValidator,
   updateUserValidator,
   getUserValidator,
   getUsersValidator,
+  getDeanValidator,
 } from '../validators/user.validator';
 
 const router = Router();
@@ -34,6 +35,45 @@ router.use(authenticate);
  *         description: User profile
  */
 router.get('/profile', userController.getProfile);
+
+/**
+ * @swagger
+ * /users/dean:
+ *   get:
+ *     summary: Get current dean (Super Admin and Dean only)
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Dean details
+ */
+router.get(
+  '/dean',
+  authorize(...SUPER_LEVEL_ROLES),
+  userController.getDean,
+);
+
+/**
+ * @swagger
+ * /users/dean/{id}:
+ *   delete:
+ *     summary: Delete dean account (Super Admin only)
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Dean deleted
+ */
+router.delete(
+  '/dean/:id',
+  authorize(ROLES.SUPER_ADMIN),
+  getDeanValidator,
+  validate,
+  userController.deleteDean,
+);
 
 /**
  * @swagger
@@ -103,7 +143,7 @@ router.post('/profile/image', uploadRateLimiter, uploadImage, userController.upd
  */
 router.get(
   '/',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   getUsersValidator,
   validate,
   userController.getUsers,
@@ -121,12 +161,12 @@ router.get(
  *         application/json:
  *           schema:
  *             type: object
- *             required: [fullName, email, password, role]
+ *             required: [fullName, email, role]
  *             properties:
  *               fullName: { type: string }
  *               email: { type: string, format: email }
- *               password: { type: string }
- *               role: { type: string, enum: [super_admin, department_admin, student] }
+ *               password: { type: string, description: 'Required for all roles except dean (auto-generated)' }
+ *               role: { type: string, enum: [super_admin, dean, department_admin, student] }
  *               departmentId: { type: string }
  *               matricNumber: { type: string }
  *               level: { type: string, enum: ['100','200','300','400','500'] }
@@ -136,7 +176,7 @@ router.get(
  */
 router.post(
   '/',
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   createUserValidator,
   validate,
   userController.createUser,
@@ -157,7 +197,7 @@ router.post(
  *       200:
  *         description: User details
  */
-router.get('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN), getUserValidator, validate, userController.getUserById);
+router.get('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN), getUserValidator, validate, userController.getUserById);
 
 /**
  * @swagger
@@ -174,7 +214,7 @@ router.get('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN), getUser
  *       200:
  *         description: User updated
  */
-router.put('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN), updateUserValidator, validate, userController.updateUser);
+router.put('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN), updateUserValidator, validate, userController.updateUser);
 
 /**
  * @swagger
@@ -191,6 +231,6 @@ router.put('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN), updateU
  *       200:
  *         description: User deleted
  */
-router.delete('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.DEPARTMENT_ADMIN), getUserValidator, validate, userController.deleteUser);
+router.delete('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN), getUserValidator, validate, userController.deleteUser);
 
 export default router;

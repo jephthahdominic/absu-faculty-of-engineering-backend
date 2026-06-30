@@ -4,8 +4,7 @@ export const createStudentValidator = [
   body('fullName').trim().notEmpty().withMessage('Full name is required').isLength({ min: 2, max: 100 }).withMessage('Full name must be 2-100 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters').matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain uppercase, lowercase and number'),
-  body('matricNumber').trim().notEmpty().withMessage('Matriculation number is required').isLength({ min: 3, max: 20 }).withMessage('Matric number must be 3-20 characters'),
-  body('level').notEmpty().withMessage('Level is required').isIn(['100', '200', '300', '400', '500']).withMessage('Level must be 100, 200, 300, 400, or 500'),
+  body('matricNumber').trim().notEmpty().withMessage('Matriculation number is required').isLength({ min: 3, max: 30 }).withMessage('Matric number must be 3-30 characters'),
   body('departmentId').isMongoId().withMessage('Valid department ID is required'),
 ];
 
@@ -14,8 +13,7 @@ export const createStudentsBulkValidator = [
   body('*.fullName').trim().notEmpty().withMessage('Full name is required').isLength({ min: 2, max: 100 }).withMessage('Full name must be 2-100 characters'),
   body('*.email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('*.password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters').matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain uppercase, lowercase and number'),
-  body('*.matricNumber').trim().notEmpty().withMessage('Matriculation number is required').isLength({ min: 3, max: 20 }).withMessage('Matric number must be 3-20 characters'),
-  body('*.level').isIn(['100', '200', '300', '400', '500']).withMessage('Level must be 100, 200, 300, 400, or 500'),
+  body('*.matricNumber').trim().notEmpty().withMessage('Matriculation number is required').isLength({ min: 3, max: 30 }).withMessage('Matric number must be 3-30 characters'),
   body('*.departmentId').isMongoId().withMessage('Valid department ID is required'),
 ];
 

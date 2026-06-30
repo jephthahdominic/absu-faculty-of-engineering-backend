@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
+import { Types } from 'mongoose';
 import { userRepository } from '../repositories/user.repository';
 import { tokenRepository } from '../repositories/token.repository';
+import { IDepartmentDocument } from '../interfaces/department.interface';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -30,10 +32,14 @@ export class AppError extends Error {
 
 class AuthService {
   private buildTokenPayload(user: IAuthUser) {
+    const deptId = user.departmentId;
+    const departmentId = deptId
+      ? (deptId instanceof Types.ObjectId ? deptId : (deptId as IDepartmentDocument)._id).toString()
+      : undefined;
     return {
       userId: user._id.toString(),
       role: user.role,
-      departmentId: user.departmentId?.toString(),
+      departmentId,
     };
   }
 
@@ -50,7 +56,7 @@ class AuthService {
   }
 
   async login(payload: ILoginPayload, allowedRoles?: Role[]): Promise<ILoginResponse> {
-    const user = await userRepository.findByEmail(payload.email);
+    const user = await userRepository.findByEmail(payload.email.trim());
 
     if (!user) {
       throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
@@ -64,7 +70,7 @@ class AuthService {
       throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
     }
 
-    const isPasswordValid = await user.comparePassword(payload.password);
+    const isPasswordValid = await user.comparePassword(payload.password.trim());
     if (!isPasswordValid) {
       throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
     }
@@ -82,7 +88,7 @@ class AuthService {
         fullName: user.fullName,
         email: user.email,
         role: user.role,
-        departmentId: user.departmentId?.toString(),
+        departmentId: user.departmentId as IDepartmentDocument | undefined,
         matricNumber: user.matricNumber,
         level: user.level,
         profileImage: user.profileImage,
@@ -96,7 +102,7 @@ class AuthService {
   }
 
   async loginStudent(payload: ILoginPayload): Promise<ILoginResponse> {
-    const student = await studentRepository.findByEmail(payload.email);
+    const student = await studentRepository.findByMatricNumber(payload.matricNo.trim());
 
     if (!student) {
       throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
@@ -106,7 +112,7 @@ class AuthService {
       throw new AppError('Account is disabled. Contact administrator', HTTP_STATUS.FORBIDDEN);
     }
 
-    const isPasswordValid = await student.comparePassword(payload.password);
+    const isPasswordValid = await student.comparePassword(payload.password.trim());
     if (!isPasswordValid) {
       throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
     }
@@ -124,7 +130,7 @@ class AuthService {
         fullName: student.fullName,
         email: student.email,
         role: student.role as Role,
-        departmentId: student.departmentId?.toString(),
+        departmentId: student.departmentId as unknown as IDepartmentDocument | undefined,
         matricNumber: student.matricNumber,
         level: student.level,
         profileImage: student.profileImage,
