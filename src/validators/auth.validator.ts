@@ -5,6 +5,11 @@ export const loginValidator = [
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
+export const studentLoginValidator = [
+  body('matricNo').notEmpty().withMessage('Matric number is required'),
+  body('password').notEmpty().withMessage('Password is required'),
+];
+
 export const changePasswordValidator = [
   body('currentPassword').notEmpty().withMessage('Current password is required'),
   body('newPassword')

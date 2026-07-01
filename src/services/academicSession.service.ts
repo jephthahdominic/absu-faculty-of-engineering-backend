@@ -51,7 +51,7 @@ class AcademicSessionService {
     if (isNaN(entryYear)) return '100';
     const diff = sessionStartYear - entryYear;
     const raw = diff * 100;
-    const clamped = Math.max(100, Math.min(500, raw));
+    const clamped = Math.max(100, Math.min(600, raw));
     return String(clamped);
   }
 
@@ -60,19 +60,45 @@ class AcademicSessionService {
 
     const sessionDoc = await academicSessionRepository.upsertActive(session, startYear, updatedById);
 
-    // Recalculate all students' levels
-    const allStudents = await StudentModel.find({}).exec();
-    const bulkOps = allStudents.map((student) => ({
-      updateOne: {
-        filter: { _id: student._id },
-        update: { $set: { level: this.computeLevel(student.matricNumber, startYear) } },
-      },
-    }));
-
-    if (bulkOps.length > 0) {
-      await StudentModel.bulkWrite(bulkOps);
-      logger.info(`Updated levels for ${bulkOps.length} students for session ${session}`);
-    }
+    // Recalculate levels server-side via aggregation pipeline — no documents loaded into memory.
+    // Runs in background so the HTTP response is not held open.
+    setImmediate(() => {
+      StudentModel.updateMany(
+        {},
+        [
+          {
+            $set: {
+              level: {
+                $toString: {
+                  $max: [
+                    100,
+                    {
+                      $min: [
+                        600,
+                        {
+                          $multiply: [
+                            {
+                              $subtract: [
+                                startYear,
+                                { $toInt: { $arrayElemAt: [{ $split: ['$matricNumber', '/'] }, 0] } },
+                              ],
+                            },
+                            100,
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      )
+        .exec()
+        .then((r) => logger.info(`Levels recalculated for ${r.modifiedCount} students → session ${session}`))
+        .catch((err) => logger.error(`Failed to recalculate student levels for session ${session}: ${err}`));
+    });
 
     logger.info(`Academic session updated to ${session} by ${updatedById}`);
     return this.mapToResponse(sessionDoc);

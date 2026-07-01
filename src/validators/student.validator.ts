@@ -21,7 +21,7 @@ export const updateStudentValidator = [
   param('id').isMongoId().withMessage('Invalid student ID'),
   body('fullName').optional().trim().isLength({ min: 2, max: 100 }).withMessage('Full name must be 2-100 characters'),
   body('email').optional().isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('level').optional().isIn(['100', '200', '300', '400', '500']).withMessage('Level must be 100, 200, 300, 400, or 500'),
+  body('level').optional().isIn(['100', '200', '300', '400', '500', '600']).withMessage('Level must be 100, 200, 300, 400, 500, or 600'),
   body('matricNumber').optional().trim().isLength({ min: 3, max: 20 }).withMessage('Matric number must be 3-20 characters'),
   body('departmentId').optional().isMongoId().withMessage('Invalid department ID'),
   body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
@@ -36,7 +36,7 @@ export const getStudentsValidator = [
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be 1-100'),
   query('search').optional().isString(),
   query('departmentId').optional().isMongoId().withMessage('Invalid department ID'),
-  query('level').optional().isIn(['100', '200', '300', '400', '500']).withMessage('Invalid level'),
+  query('level').optional().isIn(['100', '200', '300', '400', '500', '600']).withMessage('Invalid level'),
   query('sort').optional().isString(),
   query('order').optional().isIn(['asc', 'desc']),
 ];

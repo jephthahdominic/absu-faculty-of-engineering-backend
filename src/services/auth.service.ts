@@ -10,7 +10,7 @@ import {
   generatePasswordResetToken,
   verifyPasswordResetToken,
 } from '../utils/token.util';
-import { ILoginPayload, IAuthTokens, ILoginResponse, IAuthUser } from '../interfaces/auth.interface';
+import { ILoginPayload, IAuthTokens, ILoginResponse, IAuthUser, ILoginAdminPayload } from '../interfaces/auth.interface';
 import { IUserDocument } from '../interfaces/user.interface';
 import { ROLES, Role } from '../constants/roles';
 import { studentRepository } from '../repositories/student.repository';
@@ -55,7 +55,7 @@ class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async login(payload: ILoginPayload, allowedRoles?: Role[]): Promise<ILoginResponse> {
+  async login(payload: ILoginAdminPayload, allowedRoles?: Role[]): Promise<ILoginResponse> {
     const user = await userRepository.findByEmail(payload.email.trim());
 
     if (!user) {
@@ -105,7 +105,7 @@ class AuthService {
     const student = await studentRepository.findByMatricNumber(payload.matricNo.trim());
 
     if (!student) {
-      throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
+      throw new AppError('Invalid matric number or password', HTTP_STATUS.UNAUTHORIZED);
     }
 
     if (!student.isActive) {
@@ -114,7 +114,7 @@ class AuthService {
 
     const isPasswordValid = await student.comparePassword(payload.password.trim());
     if (!isPasswordValid) {
-      throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
+      throw new AppError('Invalid matric number or password', HTTP_STATUS.UNAUTHORIZED);
     }
 
     await studentRepository.updateLastLogin(student._id.toString());

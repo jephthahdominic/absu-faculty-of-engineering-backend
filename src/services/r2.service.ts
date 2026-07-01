@@ -43,7 +43,7 @@ class R2Service {
         }),
       );
 
-      const fileUrl = `${env.R2_PUBLIC_URL}/${key}`;
+      const fileUrl = `${env.R2_PUBLIC_URL}/${env.R2_BUCKET_NAME}/${key}`;
       logger.info(`File uploaded to R2: ${key}`);
 
       return { fileId: key, fileUrl, fileName: sanitizedName };

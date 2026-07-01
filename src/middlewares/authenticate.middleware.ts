@@ -41,6 +41,16 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
+    // departmentId may be a populated document (from student repo's .populate()).
+    // Normalise it to a plain string ID so all services can safely call .toString().
+    if (
+      user.departmentId &&
+      typeof user.departmentId === 'object' &&
+      '_id' in (user.departmentId as object)
+    ) {
+      (user as unknown as Record<string, unknown>).departmentId = (user.departmentId as { _id: unknown })._id;
+    }
+
     req.user = user;
     next();
   } catch (error) {

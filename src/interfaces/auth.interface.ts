@@ -10,8 +10,12 @@ export interface IAuthUser {
 }
 
 export interface ILoginPayload {
-  email: string;
   matricNo:string;
+  password: string;
+}
+
+export interface ILoginAdminPayload {
+  email: string;
   password: string;
 }
 

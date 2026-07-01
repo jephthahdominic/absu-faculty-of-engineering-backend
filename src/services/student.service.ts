@@ -22,7 +22,7 @@ class StudentService {
   }
 
   private calculateLevel(enrollmentYear: number, sessionStartYear: number): string {
-    return String((sessionStartYear - enrollmentYear + 1) * 100);
+    return String((sessionStartYear - enrollmentYear) * 100);
   }
 
   private mapToResponse(student: IStudentDocument): IStudentResponse {

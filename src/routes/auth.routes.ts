@@ -15,6 +15,7 @@ import {
   changePasswordValidator,
   forgotPasswordValidator,
   resetPasswordValidator,
+  studentLoginValidator,
 } from '../validators/auth.validator';
 
 const router = Router();
@@ -94,18 +95,17 @@ router.post('/admin/login', authRateLimiter, loginValidator, validate, authContr
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, password]
+ *             required: [matricNo, password]
  *             properties:
- *               email:
+ *               matricNo:
  *                 type: string
- *                 format: email
  *               password:
  *                 type: string
  *           examples:
  *             student:
  *               summary: Student (CSC)
  *               value:
- *                 email: student1.csc@absu.edu.ng
+ *                 matricNo: 2021/000000/regular
  *                 password: Student@123456
  *     responses:
  *       200:
@@ -136,7 +136,7 @@ router.post('/admin/login', authRateLimiter, loginValidator, validate, authContr
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/student/login', authRateLimiter, loginValidator, validate, authController.loginStudent);
+router.post('/student/login', authRateLimiter, studentLoginValidator, validate, authController.loginStudent);
 
 /**
  * @swagger
