@@ -1,154 +1,121 @@
-import { Types } from 'mongoose';
+import { Types, FilterQuery } from 'mongoose';
 import { newsRepository } from '../repositories/news.repository';
-import { departmentRepository } from '../repositories/department.repository';
 import { r2Service } from './r2.service';
-import { INewsDocument } from '../interfaces/news.interface';
-import { IPaginationQuery, IPaginationResult } from '../interfaces/pagination.interface';
+import { INewsDocument, NewsCategory } from '../interfaces/news.interface';
+import { IPaginationResult } from '../interfaces/pagination.interface';
 import { buildPaginationResult } from '../utils/pagination.util';
-import { generateSlug } from '../utils/slug.util';
+import { sanitizeContent } from '../utils/sanitize.util';
 import { logger } from '../utils/logger.util';
 import { AppError } from './auth.service';
 import { HTTP_STATUS } from '../constants/httpStatus';
-import { FilterQuery } from 'mongoose';
-import { ROLES, Role } from '../constants/roles';
+
+export interface INewsQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  isPublished?: boolean;
+  isFeatured?: boolean;
+  sort?: string;
+}
+
+export interface ICreateNewsPayload {
+  title: string;
+  summary?: string;
+  content: string;
+  category?: NewsCategory;
+  isFeatured?: boolean;
+  isPublished?: boolean;
+  publishedAt?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+}
+
+export type IUpdateNewsPayload = Partial<ICreateNewsPayload>;
+
+const parseSort = (sort?: string): Record<string, 1 | -1> => {
+  const value = sort?.trim() || '-createdAt';
+  if (value.startsWith('-')) {
+    return { [value.slice(1)]: -1 };
+  }
+  return { [value]: 1 };
+};
+
+const buildBaseFilter = (query: INewsQuery): FilterQuery<INewsDocument> => {
+  const filter: FilterQuery<INewsDocument> = {};
+
+  if (query.category) filter.category = query.category;
+  if (query.isFeatured !== undefined) filter.isFeatured = query.isFeatured;
+
+  if (query.search) {
+    filter.$or = [
+      { title: { $regex: query.search, $options: 'i' } },
+      { content: { $regex: query.search, $options: 'i' } },
+      { summary: { $regex: query.search, $options: 'i' } },
+    ];
+  }
+
+  return filter;
+};
 
 class NewsService {
   async createNews(
-    data: {
-      title: string;
-      content: string;
-      category: string;
-      isPublished?: boolean;
-      departmentId: string;
-    },
-    file: Express.Multer.File,
-    requesterRole: Role,
-    requesterDeptId?: string,
+    data: ICreateNewsPayload,
+    authorId: string,
+    file?: Express.Multer.File,
   ): Promise<INewsDocument> {
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && data.departmentId !== requesterDeptId) {
-      throw new AppError('You can only add news to your department', HTTP_STATUS.FORBIDDEN);
-    }
-
-    const dept = await departmentRepository.findById(data.departmentId);
-    if (!dept) throw new AppError('Department not found', HTTP_STATUS.NOT_FOUND);
-
-    const { fileId, fileUrl } = await r2Service.uploadFile(
-      file.buffer,
-      file.originalname,
-      file.mimetype,
-      'news-images',
-    );
-
-    const slug = generateSlug(data.title);
-    const publishedAt = data.isPublished ? new Date() : undefined;
-
     const createData: Partial<INewsDocument> = {
       title: data.title,
-      content: data.content,
+      summary: data.summary,
+      content: sanitizeContent(data.content),
       category: data.category,
+      isFeatured: data.isFeatured ?? false,
       isPublished: data.isPublished ?? false,
-      slug,
-      featuredImage: fileUrl,
-      featuredImageId: fileId,
-      publishedAt,
-      departmentId: new Types.ObjectId(data.departmentId),
+      publishedAt: data.publishedAt ? new Date(data.publishedAt) : undefined,
+      metaTitle: data.metaTitle,
+      metaDescription: data.metaDescription,
+      author: new Types.ObjectId(authorId),
     };
+
+    if (file) {
+      const { fileId, fileUrl } = await r2Service.uploadFile(
+        file.buffer,
+        file.originalname,
+        file.mimetype,
+        'news-images',
+      );
+      createData.imageUrl = fileUrl;
+      createData.imageId = fileId;
+    }
 
     const news = await newsRepository.create(createData);
     logger.info(`News created: ${news.title}`);
-    return news;
-  }
-
-  async getNews(
-    query: IPaginationQuery,
-    requesterRole: Role | undefined,
-    requesterDeptId?: string,
-  ): Promise<IPaginationResult<INewsDocument>> {
-    const { page = 1, limit = 20, search, sort = 'createdAt', order = 'desc', departmentId, isPublished, category } = query;
-
-    const filter: FilterQuery<INewsDocument> = {};
-
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN || requesterRole === ROLES.STUDENT) {
-      filter.departmentId = requesterDeptId;
-    } else if (departmentId) {
-      filter.departmentId = departmentId;
-    }
-
-    if (!requesterRole || requesterRole === ROLES.STUDENT) {
-      filter.isPublished = true;
-    } else if (isPublished !== undefined) {
-      filter.isPublished = isPublished;
-    }
-
-    if (category) filter.category = category;
-
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    const sortOrder = order === 'asc' ? 1 : -1;
-    const { data, total } = await newsRepository.findPaginated(filter, page, limit, { [sort]: sortOrder });
-    return buildPaginationResult(data, total, page, limit);
-  }
-
-  async getNewsById(id: string, requesterRole: Role | undefined, requesterDeptId?: string): Promise<INewsDocument> {
-    const news = await newsRepository.findById(id);
-    if (!news) throw new AppError('News not found', HTTP_STATUS.NOT_FOUND);
-
-    if (
-      (requesterRole === ROLES.DEPARTMENT_ADMIN || requesterRole === ROLES.STUDENT) &&
-      news.departmentId.toString() !== requesterDeptId
-    ) {
-      throw new AppError('You can only access resources in your department', HTTP_STATUS.FORBIDDEN);
-    }
-
-    if ((!requesterRole || requesterRole === ROLES.STUDENT) && !news.isPublished) {
-      throw new AppError('News not found', HTTP_STATUS.NOT_FOUND);
-    }
-
-    return news;
-  }
-
-  async getNewsBySlug(slug: string): Promise<INewsDocument> {
-    const news = await newsRepository.findBySlug(slug);
-    if (!news || !news.isPublished) throw new AppError('News not found', HTTP_STATUS.NOT_FOUND);
-    return news;
+    return newsRepository.findById(news._id.toString()) as Promise<INewsDocument>;
   }
 
   async updateNews(
     id: string,
-    data: Partial<{ title: string; content: string; category: string; isPublished: boolean }>,
-    file: Express.Multer.File | undefined,
-    requesterRole: Role,
-    requesterDeptId?: string,
+    data: IUpdateNewsPayload,
+    updatedById: string,
+    file?: Express.Multer.File,
   ): Promise<INewsDocument> {
     const news = await newsRepository.findById(id);
     if (!news) throw new AppError('News not found', HTTP_STATUS.NOT_FOUND);
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && news.departmentId.toString() !== requesterDeptId) {
-      throw new AppError('You can only update news in your department', HTTP_STATUS.FORBIDDEN);
-    }
-
-    const updateData: Partial<INewsDocument> = {};
-    if (data.title) {
-      updateData.title = data.title;
-      if (data.title !== news.title) updateData.slug = generateSlug(data.title);
-    }
-    if (data.content) updateData.content = data.content;
-    if (data.category) updateData.category = data.category;
-    if (data.isPublished !== undefined) {
-      updateData.isPublished = data.isPublished;
-      if (data.isPublished && !news.isPublished) updateData.publishedAt = new Date();
-    }
+    if (data.title !== undefined) news.title = data.title;
+    if (data.summary !== undefined) news.summary = data.summary;
+    if (data.content !== undefined) news.content = sanitizeContent(data.content);
+    if (data.category !== undefined) news.category = data.category;
+    if (data.isFeatured !== undefined) news.isFeatured = data.isFeatured;
+    if (data.metaTitle !== undefined) news.metaTitle = data.metaTitle;
+    if (data.metaDescription !== undefined) news.metaDescription = data.metaDescription;
+    if (data.publishedAt !== undefined) news.publishedAt = new Date(data.publishedAt);
+    if (data.isPublished !== undefined) news.isPublished = data.isPublished;
 
     if (file) {
-      if (news.featuredImageId) {
+      if (news.imageId) {
         try {
-          await r2Service.deleteFile(news.featuredImageId);
+          await r2Service.deleteFile(news.imageId);
         } catch {
           logger.warn(`Failed to delete old news image`);
         }
@@ -159,33 +126,67 @@ class NewsService {
         file.mimetype,
         'news-images',
       );
-      updateData.featuredImage = fileUrl;
-      updateData.featuredImageId = fileId;
+      news.imageUrl = fileUrl;
+      news.imageId = fileId;
     }
 
-    const updated = await newsRepository.updateById(id, updateData);
+    news.updatedBy = new Types.ObjectId(updatedById);
+
+    await news.save();
     logger.info(`News updated: ${id}`);
-    return updated!;
+    return newsRepository.findById(id) as Promise<INewsDocument>;
   }
 
-  async deleteNews(id: string, requesterRole: Role, requesterDeptId?: string): Promise<void> {
+  async deleteNews(id: string): Promise<void> {
     const news = await newsRepository.findById(id);
     if (!news) throw new AppError('News not found', HTTP_STATUS.NOT_FOUND);
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && news.departmentId.toString() !== requesterDeptId) {
-      throw new AppError('You can only delete news in your department', HTTP_STATUS.FORBIDDEN);
-    }
-
-    if (news.featuredImageId) {
+    if (news.imageId) {
       try {
-        await r2Service.deleteFile(news.featuredImageId);
+        await r2Service.deleteFile(news.imageId);
       } catch {
-        logger.warn(`Failed to delete news image from Drive`);
+        logger.warn(`Failed to delete news image from R2`);
       }
     }
 
     await newsRepository.deleteById(id);
     logger.info(`News deleted: ${id}`);
+  }
+
+  async getNewsById(id: string): Promise<INewsDocument> {
+    const news = await newsRepository.findById(id);
+    if (!news) throw new AppError('News not found', HTTP_STATUS.NOT_FOUND);
+    return news;
+  }
+
+  async getNewsBySlug(slug: string): Promise<INewsDocument> {
+    const news = await newsRepository.findBySlug(slug);
+    if (!news || !news.isPublished) throw new AppError('News not found', HTTP_STATUS.NOT_FOUND);
+    return news;
+  }
+
+  async getAllNews(query: INewsQuery): Promise<IPaginationResult<INewsDocument>> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const filter = buildBaseFilter(query);
+    if (query.isPublished !== undefined) filter.isPublished = query.isPublished;
+
+    const sort = parseSort(query.sort);
+    const { data, total } = await newsRepository.findPaginated(filter, page, limit, sort);
+    return buildPaginationResult(data, total, page, limit);
+  }
+
+  async getPublishedNews(query: INewsQuery): Promise<IPaginationResult<INewsDocument>> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const filter = buildBaseFilter(query);
+    filter.isPublished = true;
+
+    const sort = parseSort(query.sort);
+    const { data, total } = await newsRepository.findPaginated(filter, page, limit, sort);
+    return buildPaginationResult(data, total, page, limit);
   }
 }
 

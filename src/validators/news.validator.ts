@@ -1,19 +1,29 @@
 import { body, param, query } from 'express-validator';
+import { NEWS_CATEGORIES } from '../interfaces/news.interface';
 
 export const createNewsValidator = [
-  body('title').trim().notEmpty().withMessage('Title is required').isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
-  body('content').trim().notEmpty().withMessage('Content is required').isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
-  body('category').trim().notEmpty().withMessage('Category is required').isLength({ min: 2, max: 50 }).withMessage('Category must be between 2 and 50 characters'),
+  body('title').trim().notEmpty().withMessage('Title is required').isLength({ max: 120 }).withMessage('Title must be at most 120 characters'),
+  body('summary').optional().trim().isLength({ max: 300 }).withMessage('Summary must be at most 300 characters'),
+  body('content').trim().notEmpty().withMessage('Content is required'),
+  body('category').optional().isIn(NEWS_CATEGORIES).withMessage('Invalid category'),
+  body('isFeatured').optional().isBoolean().withMessage('isFeatured must be a boolean'),
   body('isPublished').optional().isBoolean().withMessage('isPublished must be a boolean'),
-  body('departmentId').isMongoId().withMessage('Valid department ID is required'),
+  body('publishedAt').optional().isISO8601().withMessage('publishedAt must be a valid date'),
+  body('metaTitle').optional().trim().isLength({ max: 80 }).withMessage('Meta title must be at most 80 characters'),
+  body('metaDescription').optional().trim().isLength({ max: 180 }).withMessage('Meta description must be at most 180 characters'),
 ];
 
 export const updateNewsValidator = [
   param('id').isMongoId().withMessage('Invalid news ID'),
-  body('title').optional().trim().isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
-  body('content').optional().trim().isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
-  body('category').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Category must be between 2 and 50 characters'),
+  body('title').optional().trim().isLength({ max: 120 }).withMessage('Title must be at most 120 characters'),
+  body('summary').optional().trim().isLength({ max: 300 }).withMessage('Summary must be at most 300 characters'),
+  body('content').optional().trim().notEmpty().withMessage('Content cannot be empty'),
+  body('category').optional().isIn(NEWS_CATEGORIES).withMessage('Invalid category'),
+  body('isFeatured').optional().isBoolean().withMessage('isFeatured must be a boolean'),
   body('isPublished').optional().isBoolean().withMessage('isPublished must be a boolean'),
+  body('publishedAt').optional().isISO8601().withMessage('publishedAt must be a valid date'),
+  body('metaTitle').optional().trim().isLength({ max: 80 }).withMessage('Meta title must be at most 80 characters'),
+  body('metaDescription').optional().trim().isLength({ max: 180 }).withMessage('Meta description must be at most 180 characters'),
 ];
 
 export const getNewsValidator = [
@@ -24,9 +34,8 @@ export const getNewsListValidator = [
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
   query('search').optional().isString(),
-  query('departmentId').optional().isMongoId(),
-  query('category').optional().isString(),
+  query('category').optional().isIn(NEWS_CATEGORIES),
   query('isPublished').optional().isBoolean(),
+  query('isFeatured').optional().isBoolean(),
   query('sort').optional().isString(),
-  query('order').optional().isIn(['asc', 'desc']),
 ];

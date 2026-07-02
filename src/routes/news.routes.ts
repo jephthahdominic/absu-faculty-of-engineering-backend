@@ -7,9 +7,10 @@
 import { Router } from 'express';
 import * as newsController from '../controllers/news.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
+import { optionalAuthenticate } from '../middlewares/optionalAuthenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
 import { validate } from '../middlewares/validate.middleware';
-import { uploadImage, uploadOptionalImage } from '../middlewares/upload.middleware';
+import { uploadOptionalImage } from '../middlewares/upload.middleware';
 import { uploadRateLimiter } from '../middlewares/rateLimiter.middleware';
 import { ROLES } from '../constants/roles';
 import {
@@ -21,16 +22,16 @@ import {
 
 const router = Router();
 
-router.get('/', getNewsListValidator, validate, newsController.getNews);
+router.get('/', optionalAuthenticate, getNewsListValidator, validate, newsController.getNews);
 router.get('/slug/:slug', newsController.getNewsBySlug);
 router.get('/:id', getNewsValidator, validate, newsController.getNewsById);
 
 router.post(
   '/',
   authenticate,
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN),
   uploadRateLimiter,
-  uploadImage,
+  uploadOptionalImage,
   createNewsValidator,
   validate,
   newsController.createNews,
@@ -39,7 +40,7 @@ router.post(
 router.put(
   '/:id',
   authenticate,
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN),
   uploadRateLimiter,
   uploadOptionalImage,
   updateNewsValidator,
@@ -50,7 +51,7 @@ router.put(
 router.delete(
   '/:id',
   authenticate,
-  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
+  authorize(ROLES.SUPER_ADMIN, ROLES.DEAN),
   getNewsValidator,
   validate,
   newsController.deleteNews,
