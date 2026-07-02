@@ -8,6 +8,7 @@ import { Router } from 'express';
 import * as eventController from '../controllers/event.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
+import { requireVerifiedLecturer } from '../middlewares/requireVerifiedLecturer.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { uploadImage, uploadOptionalImage } from '../middlewares/upload.middleware';
 import { uploadRateLimiter } from '../middlewares/rateLimiter.middleware';
@@ -22,6 +23,7 @@ import {
 const router = Router();
 
 router.use(authenticate);
+router.use(requireVerifiedLecturer);
 
 router.get('/', getEventsValidator, validate, eventController.getEvents);
 router.get('/:id', getEventValidator, validate, eventController.getEventById);

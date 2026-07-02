@@ -8,6 +8,7 @@ import { Router } from 'express';
 import * as noteController from '../controllers/lectureNote.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
+import { requireVerifiedLecturer } from '../middlewares/requireVerifiedLecturer.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { uploadDocument } from '../middlewares/upload.middleware';
 import { uploadRateLimiter } from '../middlewares/rateLimiter.middleware';
@@ -22,6 +23,7 @@ import {
 const router = Router();
 
 router.use(authenticate);
+router.use(requireVerifiedLecturer);
 
 router.get('/', getLectureNotesValidator, validate, noteController.getLectureNotes);
 router.get('/:id', getLectureNoteValidator, validate, noteController.getLectureNoteById);

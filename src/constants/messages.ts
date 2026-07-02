@@ -38,12 +38,17 @@ export const DEPARTMENT_MESSAGES = {
 
 export const LECTURER_MESSAGES = {
   CREATED: 'Lecturer created successfully',
+  REGISTERED: 'Registration successful. Your account is pending verification by your Head of Department.',
+  VERIFIED: 'Lecturer verified successfully',
+  ALREADY_VERIFIED: 'Lecturer is already verified',
+  PENDING_VERIFICATION: 'Your lecturer account is pending verification by your Head of Department',
   UPDATED: 'Lecturer updated successfully',
   DELETED: 'Lecturer deleted successfully',
   FETCHED: 'Lecturers fetched successfully',
   FETCHED_ONE: 'Lecturer fetched successfully',
   NOT_FOUND: 'Lecturer not found',
   EMAIL_EXISTS: 'Lecturer email already in use',
+  STAFF_ID_EXISTS: 'Staff ID already in use',
 };
 
 export const PUBLICATION_MESSAGES = {

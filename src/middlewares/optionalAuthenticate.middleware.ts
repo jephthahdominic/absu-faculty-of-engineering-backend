@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/token.util';
 import { userRepository } from '../repositories/user.repository';
 import { studentRepository } from '../repositories/student.repository';
+import { lecturerRepository } from '../repositories/lecturer.repository';
 import { ROLES } from '../constants/roles';
 import { logger } from '../utils/logger.util';
 
@@ -17,7 +18,9 @@ export const optionalAuthenticate = async (req: Request, _res: Response, next: N
 
     const user = payload.role === ROLES.STUDENT
       ? await studentRepository.findById(payload.userId)
-      : await userRepository.findById(payload.userId);
+      : payload.role === ROLES.LECTURER
+        ? await lecturerRepository.findById(payload.userId)
+        : await userRepository.findById(payload.userId);
 
     if (user && user.isActive) {
       if (

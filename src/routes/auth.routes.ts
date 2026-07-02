@@ -16,6 +16,7 @@ import {
   forgotPasswordValidator,
   resetPasswordValidator,
   studentLoginValidator,
+  lecturerLoginValidator,
 } from '../validators/auth.validator';
 
 const router = Router();
@@ -137,6 +138,57 @@ router.post('/admin/login', authRateLimiter, loginValidator, validate, authContr
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/student/login', authRateLimiter, studentLoginValidator, validate, authController.loginStudent);
+
+/**
+ * @swagger
+ * /auth/lecturer/login:
+ *   post:
+ *     summary: Lecturer login
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful. Check data.user.isVerified — unverified lecturers cannot access protected routes until their Head of Department verifies them.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user:
+ *                           $ref: '#/components/schemas/User'
+ *                         tokens:
+ *                           type: object
+ *                           properties:
+ *                             accessToken:
+ *                               type: string
+ *                             refreshToken:
+ *                               type: string
+ *       401:
+ *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/lecturer/login', authRateLimiter, lecturerLoginValidator, validate, authController.loginLecturer);
 
 /**
  * @swagger

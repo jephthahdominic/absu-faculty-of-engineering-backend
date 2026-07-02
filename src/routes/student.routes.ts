@@ -8,6 +8,7 @@ import { Router } from 'express';
 import * as studentController from '../controllers/student.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
+import { requireVerifiedLecturer } from '../middlewares/requireVerifiedLecturer.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { ROLES } from '../constants/roles';
 
@@ -22,6 +23,7 @@ import {
 const router = Router();
 
 router.use(authenticate);
+router.use(requireVerifiedLecturer);
 router.use(authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN));
 
 /**

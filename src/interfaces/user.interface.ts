@@ -36,4 +36,7 @@ export interface IUserResponse {
   lastLogin?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  staffId?: string;
+  designation?: string;
+  isVerified?: boolean;
 }

@@ -17,9 +17,11 @@ class LecturerService {
       firstName: string;
       lastName: string;
       email: string;
+      staffId: string;
       designation: string;
       bio?: string;
       departmentId: string;
+      password?: string;
     },
     requesterRole: Role,
     requesterDeptId?: string,
@@ -38,18 +40,110 @@ class LecturerService {
       throw new AppError('Lecturer email already in use', HTTP_STATUS.CONFLICT);
     }
 
+    const staffIdExists = await lecturerRepository.findByStaffId(data.staffId);
+    if (staffIdExists) {
+      throw new AppError('Staff ID already in use', HTTP_STATUS.CONFLICT);
+    }
+
     const createData: Partial<ILecturerDocument> = {
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
+      staffId: data.staffId,
       designation: data.designation,
       bio: data.bio,
       departmentId: new Types.ObjectId(data.departmentId),
+      password: data.password,
+      // Admin-created lecturers are trusted by the creator's authority; no HOD verification needed.
+      isVerified: true,
     };
 
     const lecturer = await lecturerRepository.create(createData);
     logger.info(`Lecturer created: ${lecturer.email}`);
     return lecturer;
+  }
+
+  async registerLecturer(
+    data: {
+      fullName: string;
+      email: string;
+      staffId: string;
+      departmentId: string;
+      designation: string;
+      password: string;
+    },
+    file: Express.Multer.File,
+  ): Promise<ILecturerDocument> {
+    const dept = await departmentRepository.findById(data.departmentId);
+    if (!dept) {
+      throw new AppError('Department not found', HTTP_STATUS.NOT_FOUND);
+    }
+
+    const emailExists = await lecturerRepository.findByEmail(data.email);
+    if (emailExists) {
+      throw new AppError('Lecturer email already in use', HTTP_STATUS.CONFLICT);
+    }
+
+    const staffIdExists = await lecturerRepository.findByStaffId(data.staffId);
+    if (staffIdExists) {
+      throw new AppError('Staff ID already in use', HTTP_STATUS.CONFLICT);
+    }
+
+    const [firstName, ...rest] = data.fullName.trim().split(/\s+/);
+    const lastName = rest.join(' ');
+
+    const { fileId, fileUrl } = await r2Service.uploadFile(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      'lecturer-images',
+    );
+
+    const createData: Partial<ILecturerDocument> = {
+      firstName,
+      lastName,
+      email: data.email,
+      staffId: data.staffId,
+      designation: data.designation,
+      departmentId: new Types.ObjectId(data.departmentId),
+      password: data.password,
+      profileImage: fileUrl,
+      profileImageId: fileId,
+      role: ROLES.LECTURER,
+      isVerified: false,
+    };
+
+    const lecturer = await lecturerRepository.create(createData);
+    logger.info(`Lecturer registered: ${lecturer.email}`);
+    return lecturer;
+  }
+
+  async verifyLecturer(
+    id: string,
+    verifierId: string,
+    requesterRole: Role,
+    requesterDeptId?: string,
+  ): Promise<ILecturerDocument> {
+    const lecturer = await lecturerRepository.findById(id);
+    if (!lecturer) {
+      throw new AppError('Lecturer not found', HTTP_STATUS.NOT_FOUND);
+    }
+
+    if (requesterRole === ROLES.DEPARTMENT_ADMIN && lecturer.departmentId.toString() !== requesterDeptId) {
+      throw new AppError('You can only verify lecturers in your department', HTTP_STATUS.FORBIDDEN);
+    }
+
+    if (lecturer.isVerified) {
+      throw new AppError('Lecturer is already verified', HTTP_STATUS.CONFLICT);
+    }
+
+    const updated = await lecturerRepository.updateById(id, {
+      isVerified: true,
+      verifiedBy: new Types.ObjectId(verifierId),
+      verifiedAt: new Date(),
+    });
+    logger.info(`Lecturer verified: ${id} by ${verifierId}`);
+    return updated!;
   }
 
   async getLecturers(
@@ -99,7 +193,7 @@ class LecturerService {
 
   async updateLecturer(
     id: string,
-    data: Partial<{ firstName: string; lastName: string; email: string; designation: string; bio: string; departmentId: string }>,
+    data: Partial<{ firstName: string; lastName: string; email: string; staffId: string; designation: string; bio: string; departmentId: string }>,
     requesterRole: Role,
     requesterDeptId?: string,
   ): Promise<ILecturerDocument> {
@@ -119,10 +213,18 @@ class LecturerService {
       }
     }
 
+    if (data.staffId && data.staffId !== lecturer.staffId) {
+      const staffIdExists = await lecturerRepository.findByStaffId(data.staffId);
+      if (staffIdExists) {
+        throw new AppError('Staff ID already in use', HTTP_STATUS.CONFLICT);
+      }
+    }
+
     const updateData: Partial<ILecturerDocument> = {};
     if (data.firstName) updateData.firstName = data.firstName;
     if (data.lastName) updateData.lastName = data.lastName;
     if (data.email) updateData.email = data.email;
+    if (data.staffId) updateData.staffId = data.staffId;
     if (data.designation) updateData.designation = data.designation;
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.departmentId) updateData.departmentId = new Types.ObjectId(data.departmentId);

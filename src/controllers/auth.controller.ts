@@ -15,6 +15,11 @@ export const loginStudent = asyncHandler(async (req: Request, res: Response) => 
   sendSuccess(res, AUTH_MESSAGES.LOGIN_SUCCESS, result);
 });
 
+export const loginLecturer = asyncHandler(async (req: Request, res: Response) => {
+  const result = await authService.loginLecturer(req.body);
+  sendSuccess(res, AUTH_MESSAGES.LOGIN_SUCCESS, result);
+});
+
 export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
   const tokens = await authService.refreshToken(req.body.refreshToken);
   sendSuccess(res, AUTH_MESSAGES.TOKEN_REFRESHED, tokens);

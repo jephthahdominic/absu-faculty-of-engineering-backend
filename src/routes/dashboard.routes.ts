@@ -8,6 +8,7 @@ import { Router } from 'express';
 import * as dashboardController from '../controllers/dashboard.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
+import { requireVerifiedLecturer } from '../middlewares/requireVerifiedLecturer.middleware';
 import { ROLES } from '../constants/roles';
 
 const router = Router();
@@ -54,6 +55,7 @@ const router = Router();
 router.get(
   '/stats',
   authenticate,
+  requireVerifiedLecturer,
   authorize(ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN),
   dashboardController.getDashboardStats,
 );

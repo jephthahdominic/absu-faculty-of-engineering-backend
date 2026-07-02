@@ -8,6 +8,7 @@ import { Router } from 'express';
 import * as pubController from '../controllers/publication.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
+import { requireVerifiedLecturer } from '../middlewares/requireVerifiedLecturer.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { ROLES } from '../constants/roles';
 import {
@@ -21,6 +22,7 @@ import { uploadDocument } from '../middlewares/upload.middleware';
 const router = Router();
 
 router.use(authenticate);
+router.use(requireVerifiedLecturer);
 
 router.get('/', getPublicationsValidator, validate, pubController.getPublications);
 router.get('/:id', getPublicationValidator, validate, pubController.getPublicationById);

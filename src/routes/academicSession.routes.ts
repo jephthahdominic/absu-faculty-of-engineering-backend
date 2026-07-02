@@ -8,6 +8,7 @@ import { Router } from 'express';
 import * as sessionController from '../controllers/academicSession.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
+import { requireVerifiedLecturer } from '../middlewares/requireVerifiedLecturer.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { ROLES, SUPER_LEVEL_ROLES } from '../constants/roles';
 import { updateSessionValidator } from '../validators/academicSession.validator';
@@ -15,6 +16,7 @@ import { updateSessionValidator } from '../validators/academicSession.validator'
 const router = Router();
 
 router.use(authenticate);
+router.use(requireVerifiedLecturer);
 
 /**
  * @swagger

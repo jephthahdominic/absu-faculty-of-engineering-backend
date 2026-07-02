@@ -8,6 +8,7 @@ import { Router } from 'express';
 import * as userController from '../controllers/user.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
+import { requireVerifiedLecturer } from '../middlewares/requireVerifiedLecturer.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { uploadImage } from '../middlewares/upload.middleware';
 import { uploadRateLimiter } from '../middlewares/rateLimiter.middleware';
@@ -23,6 +24,7 @@ import {
 const router = Router();
 
 router.use(authenticate);
+router.use(requireVerifiedLecturer);
 
 /**
  * @swagger

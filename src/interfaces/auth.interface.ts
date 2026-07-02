@@ -7,6 +7,7 @@ export interface IAuthUser {
   role: string;
   departmentId?: Types.ObjectId | IDepartment;
   isActive: boolean;
+  isVerified?: boolean;
 }
 
 export interface ILoginPayload {

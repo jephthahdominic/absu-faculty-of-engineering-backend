@@ -14,6 +14,7 @@ import { ILoginPayload, IAuthTokens, ILoginResponse, IAuthUser, ILoginAdminPaylo
 import { IUserDocument } from '../interfaces/user.interface';
 import { ROLES, Role } from '../constants/roles';
 import { studentRepository } from '../repositories/student.repository';
+import { lecturerRepository } from '../repositories/lecturer.repository';
 import { emailService } from './email.service';
 import { logger } from '../utils/logger.util';
 import { HTTP_STATUS } from '../constants/httpStatus';
@@ -143,6 +144,49 @@ class AuthService {
     };
   }
 
+  async loginLecturer(payload: ILoginAdminPayload): Promise<ILoginResponse> {
+    const lecturer = await lecturerRepository.findByEmailForAuth(payload.email.trim());
+
+    if (!lecturer) {
+      throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
+    }
+
+    if (!lecturer.isActive) {
+      throw new AppError('Account is disabled. Contact administrator', HTTP_STATUS.FORBIDDEN);
+    }
+
+    const isPasswordValid = await lecturer.comparePassword(payload.password.trim());
+    if (!isPasswordValid) {
+      throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
+    }
+
+    await lecturerRepository.updateLastLogin(lecturer._id.toString());
+    const tokens = await this.generateTokens(lecturer);
+
+    logger.info(`Lecturer logged in: ${lecturer.email}`);
+
+    const lecturerObj = lecturer.toJSON() as unknown as { createdAt?: Date; updatedAt?: Date };
+
+    return {
+      user: {
+        _id: lecturer._id.toString(),
+        fullName: `${lecturer.firstName} ${lecturer.lastName}`.trim(),
+        email: lecturer.email,
+        role: lecturer.role as Role,
+        departmentId: lecturer.departmentId as IDepartmentDocument | undefined,
+        profileImage: lecturer.profileImage,
+        isActive: lecturer.isActive,
+        lastLogin: lecturer.lastLogin,
+        staffId: lecturer.staffId,
+        designation: lecturer.designation,
+        isVerified: lecturer.isVerified,
+        createdAt: lecturerObj.createdAt,
+        updatedAt: lecturerObj.updatedAt,
+      },
+      tokens,
+    };
+  }
+
   async refreshToken(refreshToken: string): Promise<IAuthTokens> {
     const tokenDoc = await tokenRepository.findByToken(refreshToken);
     if (!tokenDoc) {
@@ -159,7 +203,9 @@ class AuthService {
 
     const user = payload.role === ROLES.STUDENT
       ? await studentRepository.findById(payload.userId)
-      : await userRepository.findById(payload.userId);
+      : payload.role === ROLES.LECTURER
+        ? await lecturerRepository.findById(payload.userId)
+        : await userRepository.findById(payload.userId);
 
     if (!user || !user.isActive) {
       throw new AppError('User not found or inactive', HTTP_STATUS.UNAUTHORIZED);

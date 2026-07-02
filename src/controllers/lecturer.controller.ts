@@ -5,6 +5,8 @@ import { asyncHandler } from '../utils/asyncHandler.util';
 import { parsePaginationQuery } from '../utils/pagination.util';
 import { LECTURER_MESSAGES } from '../constants/messages';
 import { Role } from '../constants/roles';
+import { AppError } from '../services/auth.service';
+import { HTTP_STATUS } from '../constants/httpStatus';
 
 export const createLecturer = asyncHandler(async (req: Request, res: Response) => {
   const lecturer = await lecturerService.createLecturer(
@@ -13,6 +15,24 @@ export const createLecturer = asyncHandler(async (req: Request, res: Response) =
     req.user!.departmentId?.toString(),
   );
   sendCreated(res, LECTURER_MESSAGES.CREATED, lecturer);
+});
+
+export const registerLecturer = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.file) {
+    throw new AppError('Profile picture is required', HTTP_STATUS.BAD_REQUEST);
+  }
+  const lecturer = await lecturerService.registerLecturer(req.body, req.file);
+  sendCreated(res, LECTURER_MESSAGES.REGISTERED, lecturer);
+});
+
+export const verifyLecturer = asyncHandler(async (req: Request, res: Response) => {
+  const lecturer = await lecturerService.verifyLecturer(
+    req.params.id,
+    req.user!._id.toString(),
+    req.user!.role as Role,
+    req.user!.departmentId?.toString(),
+  );
+  sendSuccess(res, LECTURER_MESSAGES.VERIFIED, lecturer);
 });
 
 export const getLecturers = asyncHandler(async (req: Request, res: Response) => {

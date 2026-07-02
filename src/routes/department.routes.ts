@@ -8,6 +8,7 @@ import { Router } from 'express';
 import * as deptController from '../controllers/department.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
 import { authorize } from '../middlewares/authorize.middleware';
+import { requireVerifiedLecturer } from '../middlewares/requireVerifiedLecturer.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { ROLES, SUPER_LEVEL_ROLES } from '../constants/roles';
 import {
@@ -20,6 +21,7 @@ import {
 const router = Router();
 
 router.use(authenticate);
+router.use(requireVerifiedLecturer);
 
 /**
  * @swagger

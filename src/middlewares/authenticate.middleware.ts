@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/token.util';
 import { userRepository } from '../repositories/user.repository';
 import { studentRepository } from '../repositories/student.repository';
+import { lecturerRepository } from '../repositories/lecturer.repository';
 import { sendError } from '../utils/response.util';
 import { HTTP_STATUS } from '../constants/httpStatus';
 import { AUTH_MESSAGES } from '../constants/messages';
@@ -29,7 +30,9 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 
     const user = payload.role === ROLES.STUDENT
       ? await studentRepository.findById(payload.userId)
-      : await userRepository.findById(payload.userId);
+      : payload.role === ROLES.LECTURER
+        ? await lecturerRepository.findById(payload.userId)
+        : await userRepository.findById(payload.userId);
 
     if (!user) {
       sendError(res, AUTH_MESSAGES.UNAUTHORIZED, HTTP_STATUS.UNAUTHORIZED);
