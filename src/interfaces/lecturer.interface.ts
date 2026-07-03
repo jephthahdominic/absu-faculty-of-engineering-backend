@@ -6,7 +6,7 @@ export interface ILecturer {
   lastName: string;
   email: string;
   password?: string;
-  staffId: string;
+  staffId?: string;
   designation: string;
   role: string;
   profileImage?: string;

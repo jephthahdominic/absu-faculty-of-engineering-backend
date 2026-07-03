@@ -254,7 +254,7 @@ router.post('/logout-all', authenticate, authController.logoutAll);
  * @swagger
  * /auth/change-password:
  *   post:
- *     summary: Change password (Dean, Department Admin, Student — not available to Super Admin)
+ *     summary: Change password (Dean, Department Admin, Student, Lecturer — not available to Super Admin)
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -277,7 +277,7 @@ router.post('/logout-all', authenticate, authController.logoutAll);
 router.post(
   '/change-password',
   authenticate,
-  authorize(ROLES.DEAN, ROLES.DEPARTMENT_ADMIN, ROLES.STUDENT),
+  authorize(ROLES.DEAN, ROLES.DEPARTMENT_ADMIN, ROLES.STUDENT, ROLES.LECTURER),
   changePasswordValidator,
   validate,
   authController.changePassword,

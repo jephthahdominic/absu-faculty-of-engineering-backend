@@ -9,7 +9,7 @@ const lecturerSchema = new Schema<ILecturerDocument>(
     lastName: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, minlength: 8, select: false },
-    staffId: { type: String, required: true, unique: true, trim: true },
+    staffId: { type: String, unique: true, sparse: true, trim: true },
     designation: { type: String, required: true, trim: true },
     role: { type: String, default: ROLES.LECTURER, immutable: true },
     profileImage: { type: String, default: null },

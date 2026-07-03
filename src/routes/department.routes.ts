@@ -20,6 +20,20 @@ import {
 
 const router = Router();
 
+/**
+ * @swagger
+ * /departments/public:
+ *   get:
+ *     summary: Get minimal department list (public — no auth required)
+ *     description: Returns only _id, name, and code. Intended for public forms such as lecturer/student registration dropdowns.
+ *     tags: [Departments]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Department list
+ */
+router.get('/public', deptController.getPublicDepartments);
+
 router.use(authenticate);
 router.use(requireVerifiedLecturer);
 

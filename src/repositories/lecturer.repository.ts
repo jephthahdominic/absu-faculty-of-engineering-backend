@@ -32,6 +32,14 @@ export class LecturerRepository extends BaseRepository<ILecturerDocument> {
   async updateLastLogin(id: string): Promise<void> {
     await LecturerModel.findByIdAndUpdate(id, { lastLogin: new Date() }).exec();
   }
+
+  async findByIdWithPassword(id: string): Promise<ILecturerDocument | null> {
+    return LecturerModel.findById(id).select('+password').exec();
+  }
+
+  async updatePassword(id: string, hashedPassword: string): Promise<void> {
+    await LecturerModel.findByIdAndUpdate(id, { password: hashedPassword }).exec();
+  }
 }
 
 export const lecturerRepository = new LecturerRepository();

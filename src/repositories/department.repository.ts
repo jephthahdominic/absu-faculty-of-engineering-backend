@@ -12,6 +12,10 @@ export class DepartmentRepository extends BaseRepository<IDepartmentDocument> {
     return DepartmentModel.findOne({ code: code.toUpperCase() }).exec();
   }
 
+  async findAllPublic(): Promise<IDepartmentDocument[]> {
+    return DepartmentModel.find({}, 'name code').sort({ name: 1 }).exec();
+  }
+
   async findPaginated(
     filter: FilterQuery<IDepartmentDocument>,
     page: number,

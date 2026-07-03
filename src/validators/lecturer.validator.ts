@@ -10,7 +10,7 @@ export const createLecturerValidator = [
   body('firstName').trim().notEmpty().withMessage('First name is required').isLength({ min: 2, max: 50 }),
   body('lastName').trim().notEmpty().withMessage('Last name is required').isLength({ min: 2, max: 50 }),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('staffId').trim().notEmpty().withMessage('Staff ID is required').isLength({ min: 2, max: 30 }),
+  body('staffId').optional().trim().isLength({ min: 2, max: 30 }),
   body('designation').trim().notEmpty().withMessage('Designation is required').isLength({ min: 2, max: 100 }),
   body('bio').optional().trim().isLength({ max: 1000 }).withMessage('Bio must be under 1000 characters'),
   body('departmentId').isMongoId().withMessage('Valid department ID is required'),
@@ -25,7 +25,7 @@ export const registerLecturerValidator = [
     .custom((value: string) => value.trim().split(/\s+/).length >= 2)
     .withMessage('Please provide your full name (first and last name)'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('staffId').trim().notEmpty().withMessage('Staff ID is required').isLength({ min: 2, max: 30 }),
+  body('staffId').optional().trim().isLength({ min: 2, max: 30 }),
   body('departmentId').isMongoId().withMessage('Valid department ID is required'),
   body('designation').trim().notEmpty().withMessage('Rank/Position is required').isLength({ min: 2, max: 100 }),
   passwordValidator,

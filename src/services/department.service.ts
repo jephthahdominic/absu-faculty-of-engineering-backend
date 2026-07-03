@@ -35,6 +35,10 @@ class DepartmentService {
     return buildPaginationResult(data, total, page, limit);
   }
 
+  async getPublicDepartments(): Promise<IDepartmentDocument[]> {
+    return departmentRepository.findAllPublic();
+  }
+
   async getDepartmentById(id: string): Promise<IDepartmentDocument> {
     const dept = await departmentRepository.findById(id);
     if (!dept) {

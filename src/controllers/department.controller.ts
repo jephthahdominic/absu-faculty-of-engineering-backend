@@ -10,6 +10,11 @@ export const createDepartment = asyncHandler(async (req: Request, res: Response)
   sendCreated(res, DEPARTMENT_MESSAGES.CREATED, dept);
 });
 
+export const getPublicDepartments = asyncHandler(async (_req: Request, res: Response) => {
+  const departments = await departmentService.getPublicDepartments();
+  sendSuccess(res, DEPARTMENT_MESSAGES.FETCHED, departments);
+});
+
 export const getDepartments = asyncHandler(async (req: Request, res: Response) => {
   const query = parsePaginationQuery(req.query as Record<string, unknown>);
   const result = await departmentService.getDepartments(query);

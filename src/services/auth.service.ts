@@ -233,7 +233,12 @@ class AuthService {
       throw new AppError('Super admin accounts cannot change password', HTTP_STATUS.FORBIDDEN);
     }
 
-    const repository = role === ROLES.STUDENT ? studentRepository : userRepository;
+    const repository =
+      role === ROLES.STUDENT
+        ? studentRepository
+        : role === ROLES.LECTURER
+          ? lecturerRepository
+          : userRepository;
 
     const account = await repository.findByIdWithPassword(userId);
     if (!account) {
