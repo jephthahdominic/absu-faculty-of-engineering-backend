@@ -228,23 +228,29 @@ class AuthService {
     logger.info(`All sessions revoked for user: ${userId}`);
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
-    const user = await userRepository.findByIdWithPassword(userId);
-    if (!user) {
-      throw new AppError('User not found', HTTP_STATUS.NOT_FOUND);
+  async changePassword(userId: string, role: Role, oldPassword: string, newPassword: string): Promise<void> {
+    if (role === ROLES.SUPER_ADMIN) {
+      throw new AppError('Super admin accounts cannot change password', HTTP_STATUS.FORBIDDEN);
     }
 
-    const isValid = await user.comparePassword(currentPassword);
+    const repository = role === ROLES.STUDENT ? studentRepository : userRepository;
+
+    const account = await repository.findByIdWithPassword(userId);
+    if (!account) {
+      throw new AppError('Account not found', HTTP_STATUS.NOT_FOUND);
+    }
+
+    const isValid = await account.comparePassword(oldPassword);
     if (!isValid) {
-      throw new AppError('Current password is incorrect', HTTP_STATUS.BAD_REQUEST);
+      throw new AppError('Old password is incorrect', HTTP_STATUS.BAD_REQUEST);
     }
 
     const salt = await bcrypt.genSalt(12);
     const hashed = await bcrypt.hash(newPassword, salt);
-    await userRepository.updatePassword(userId, hashed);
+    await repository.updatePassword(userId, hashed);
     await tokenRepository.revokeAllUserTokens(userId);
 
-    logger.info(`Password changed for user: ${userId}`);
+    logger.info(`Password changed for account: ${userId}`);
   }
 
   async forgotPassword(email: string): Promise<void> {

@@ -41,7 +41,7 @@ export interface IRefreshTokenPayload {
 }
 
 export interface IChangePasswordPayload {
-  currentPassword: string;
+  oldPassword: string;
   newPassword: string;
 }
 

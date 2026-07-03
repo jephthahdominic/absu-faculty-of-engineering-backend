@@ -3,7 +3,7 @@ import { authService } from '../services/auth.service';
 import { sendSuccess } from '../utils/response.util';
 import { asyncHandler } from '../utils/asyncHandler.util';
 import { AUTH_MESSAGES } from '../constants/messages';
-import { ROLES } from '../constants/roles';
+import { ROLES, Role } from '../constants/roles';
 
 export const loginAdmin = asyncHandler(async (req: Request, res: Response) => {
   const result = await authService.login(req.body, [ROLES.SUPER_ADMIN, ROLES.DEAN, ROLES.DEPARTMENT_ADMIN]);
@@ -36,8 +36,8 @@ export const logoutAll = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const changePassword = asyncHandler(async (req: Request, res: Response) => {
-  const { currentPassword, newPassword } = req.body;
-  await authService.changePassword(req.user!._id.toString(), currentPassword, newPassword);
+  const { oldPassword, newPassword } = req.body;
+  await authService.changePassword(req.user!._id.toString(), req.user!.role as Role, oldPassword, newPassword);
   sendSuccess(res, AUTH_MESSAGES.PASSWORD_CHANGED);
 });
 

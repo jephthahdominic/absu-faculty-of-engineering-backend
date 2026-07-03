@@ -7,8 +7,10 @@
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller';
 import { authenticate } from '../middlewares/authenticate.middleware';
+import { authorize } from '../middlewares/authorize.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { authRateLimiter } from '../middlewares/rateLimiter.middleware';
+import { ROLES } from '../constants/roles';
 import {
   loginValidator,
   refreshTokenValidator,
@@ -252,7 +254,7 @@ router.post('/logout-all', authenticate, authController.logoutAll);
  * @swagger
  * /auth/change-password:
  *   post:
- *     summary: Change password
+ *     summary: Change password (Dean, Department Admin, Student — not available to Super Admin)
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -260,17 +262,26 @@ router.post('/logout-all', authenticate, authController.logoutAll);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [currentPassword, newPassword]
+ *             required: [oldPassword, newPassword]
  *             properties:
- *               currentPassword:
+ *               oldPassword:
  *                 type: string
  *               newPassword:
  *                 type: string
  *     responses:
  *       200:
  *         description: Password changed
+ *       403:
+ *         description: Super admin accounts cannot change password
  */
-router.post('/change-password', authenticate, changePasswordValidator, validate, authController.changePassword);
+router.post(
+  '/change-password',
+  authenticate,
+  authorize(ROLES.DEAN, ROLES.DEPARTMENT_ADMIN, ROLES.STUDENT),
+  changePasswordValidator,
+  validate,
+  authController.changePassword,
+);
 
 /**
  * @swagger
