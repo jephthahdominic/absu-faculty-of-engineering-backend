@@ -40,12 +40,12 @@ class LecturerService {
       throw new AppError('Lecturer email already in use', HTTP_STATUS.CONFLICT);
     }
 
-    if (data.staffId) {
-      const staffIdExists = await lecturerRepository.findByStaffId(data.staffId);
-      if (staffIdExists) {
-        throw new AppError('Staff ID already in use', HTTP_STATUS.CONFLICT);
-      }
-    }
+    // if (data.staffId) {
+    //   const staffIdExists = await lecturerRepository.findByStaffId(data.staffId);
+    //   if (staffIdExists) {
+    //     throw new AppError('Staff ID already in use', HTTP_STATUS.CONFLICT);
+    //   }
+    // }
 
     const createData: Partial<ILecturerDocument> = {
       firstName: data.firstName,
