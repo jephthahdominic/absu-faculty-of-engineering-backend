@@ -40,18 +40,11 @@ class LecturerService {
       throw new AppError('Lecturer email already in use', HTTP_STATUS.CONFLICT);
     }
 
-    // if (data.staffId) {
-    //   const staffIdExists = await lecturerRepository.findByStaffId(data.staffId);
-    //   if (staffIdExists) {
-    //     throw new AppError('Staff ID already in use', HTTP_STATUS.CONFLICT);
-    //   }
-    // }
-
     const createData: Partial<ILecturerDocument> = {
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
-      staffId: data.staffId,
+      staffId: data.staffId?.trim() || undefined,
       designation: data.designation,
       bio: data.bio,
       departmentId: new Types.ObjectId(data.departmentId),
@@ -86,13 +79,6 @@ class LecturerService {
       throw new AppError('Lecturer email already in use', HTTP_STATUS.CONFLICT);
     }
 
-    // if (data.staffId && data.staffId !== "") {
-    //   const staffIdExists = await lecturerRepository.findByStaffId(data.staffId);
-    //   if (staffIdExists) {
-    //     throw new AppError('Staff ID already in use', HTTP_STATUS.CONFLICT);
-    //   }
-    // }
-
     const [firstName, ...rest] = data.fullName.trim().split(/\s+/);
     const lastName = rest.join(' ');
 
@@ -107,7 +93,7 @@ class LecturerService {
       firstName,
       lastName,
       email: data.email,
-      staffId: data.staffId,
+      staffId: data.staffId?.trim() || undefined,
       designation: data.designation,
       departmentId: new Types.ObjectId(data.departmentId),
       password: data.password,
@@ -214,13 +200,6 @@ class LecturerService {
       const emailExists = await lecturerRepository.findByEmail(data.email);
       if (emailExists) {
         throw new AppError('Lecturer email already in use', HTTP_STATUS.CONFLICT);
-      }
-    }
-
-    if (data.staffId && data.staffId !== lecturer.staffId) {
-      const staffIdExists = await lecturerRepository.findByStaffId(data.staffId);
-      if (staffIdExists) {
-        throw new AppError('Staff ID already in use', HTTP_STATUS.CONFLICT);
       }
     }
 

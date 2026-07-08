@@ -16,10 +16,6 @@ export class LecturerRepository extends BaseRepository<ILecturerDocument> {
     return LecturerModel.findOne({ email: email.toLowerCase() }).select('+password').populate('departmentId').exec();
   }
 
-  async findByStaffId(staffId: string): Promise<ILecturerDocument | null> {
-    return LecturerModel.findOne({ staffId }).exec();
-  }
-
   async findPaginated(
     filter: FilterQuery<ILecturerDocument>,
     page: number,
