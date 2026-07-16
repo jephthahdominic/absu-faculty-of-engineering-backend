@@ -8,6 +8,7 @@ export interface IPublication {
   authors: string[];
   lecturerId: Types.ObjectId;
   departmentId: Types.ObjectId;
+  isPublished: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

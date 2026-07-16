@@ -14,7 +14,6 @@ export const createLecturerValidator = [
   body('designation').trim().notEmpty().withMessage('Designation is required').isLength({ min: 2, max: 100 }),
   body('bio').optional().trim().isLength({ max: 1000 }).withMessage('Bio must be under 1000 characters'),
   body('departmentId').isMongoId().withMessage('Valid department ID is required'),
-  body('password').optional().isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
 ];
 
 export const registerLecturerValidator = [

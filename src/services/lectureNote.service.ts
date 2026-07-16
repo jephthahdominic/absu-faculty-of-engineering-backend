@@ -6,6 +6,7 @@ import { r2Service } from './r2.service';
 import { ILectureNoteDocument } from '../interfaces/lectureNote.interface';
 import { IPaginationQuery, IPaginationResult } from '../interfaces/pagination.interface';
 import { buildPaginationResult } from '../utils/pagination.util';
+import { toIdString } from '../utils/objectId.util';
 import { logger } from '../utils/logger.util';
 import { AppError } from './auth.service';
 import { HTTP_STATUS } from '../constants/httpStatus';
@@ -19,21 +20,34 @@ class LectureNoteService {
       courseCode: string;
       level: string;
       semester: string;
-      lecturerId: string;
-      departmentId: string;
+      lecturerId?: string;
+      departmentId?: string;
     },
     file: Express.Multer.File,
     requesterRole: Role,
+    requesterId: string,
     requesterDeptId?: string,
   ): Promise<ILectureNoteDocument> {
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && data.departmentId !== requesterDeptId) {
+    let lecturerId = data.lecturerId;
+    let departmentId = data.departmentId;
+
+    if (requesterRole === ROLES.LECTURER) {
+      lecturerId = requesterId;
+      departmentId = requesterDeptId;
+    }
+
+    if (!lecturerId || !departmentId) {
+      throw new AppError('lecturerId and departmentId are required', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    if (requesterRole === ROLES.DEPARTMENT_ADMIN && departmentId !== requesterDeptId) {
       throw new AppError('You can only add lecture notes to your department', HTTP_STATUS.FORBIDDEN);
     }
 
-    const dept = await departmentRepository.findById(data.departmentId);
+    const dept = await departmentRepository.findById(departmentId);
     if (!dept) throw new AppError('Department not found', HTTP_STATUS.NOT_FOUND);
 
-    const lecturer = await lecturerRepository.findById(data.lecturerId);
+    const lecturer = await lecturerRepository.findById(lecturerId);
     if (!lecturer) throw new AppError('Lecturer not found', HTTP_STATUS.NOT_FOUND);
 
     const { fileId, fileUrl } = await r2Service.uploadFile(
@@ -50,8 +64,8 @@ class LectureNoteService {
       semester: data.semester,
       fileUrl,
       fileId,
-      lecturerId: new Types.ObjectId(data.lecturerId),
-      departmentId: new Types.ObjectId(data.departmentId),
+      lecturerId: new Types.ObjectId(lecturerId),
+      departmentId: new Types.ObjectId(departmentId),
     };
 
     const note = await lectureNoteRepository.create(createData);
@@ -95,7 +109,7 @@ class LectureNoteService {
 
     if (
       (requesterRole === ROLES.DEPARTMENT_ADMIN || requesterRole === ROLES.STUDENT) &&
-      note.departmentId.toString() !== requesterDeptId
+      toIdString(note.departmentId) !== requesterDeptId
     ) {
       throw new AppError('You can only access resources in your department', HTTP_STATUS.FORBIDDEN);
     }
@@ -108,12 +122,17 @@ class LectureNoteService {
     data: Partial<{ title: string; courseCode: string; level: string; semester: string; lecturerId: string }>,
     file: Express.Multer.File | undefined,
     requesterRole: Role,
+    requesterId: string,
     requesterDeptId?: string,
   ): Promise<ILectureNoteDocument> {
     const note = await lectureNoteRepository.findById(id);
     if (!note) throw new AppError('Lecture note not found', HTTP_STATUS.NOT_FOUND);
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && note.departmentId.toString() !== requesterDeptId) {
+    if (requesterRole === ROLES.LECTURER) {
+      if (toIdString(note.lecturerId) !== requesterId) {
+        throw new AppError('You can only update your own lecture notes', HTTP_STATUS.FORBIDDEN);
+      }
+    } else if (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(note.departmentId) !== requesterDeptId) {
       throw new AppError('You can only update lecture notes in your department', HTTP_STATUS.FORBIDDEN);
     }
 
@@ -122,7 +141,10 @@ class LectureNoteService {
     if (data.courseCode) updateData.courseCode = data.courseCode;
     if (data.level) updateData.level = data.level;
     if (data.semester) updateData.semester = data.semester;
-    if (data.lecturerId) updateData.lecturerId = new Types.ObjectId(data.lecturerId);
+    // Lecturers can't reassign a note to someone else — only admins may change ownership.
+    if (data.lecturerId && requesterRole !== ROLES.LECTURER) {
+      updateData.lecturerId = new Types.ObjectId(data.lecturerId);
+    }
 
     if (file) {
       if (note.fileId) {
@@ -147,11 +169,20 @@ class LectureNoteService {
     return updated!;
   }
 
-  async deleteLectureNote(id: string, requesterRole: Role, requesterDeptId?: string): Promise<void> {
+  async deleteLectureNote(
+    id: string,
+    requesterRole: Role,
+    requesterId: string,
+    requesterDeptId?: string,
+  ): Promise<void> {
     const note = await lectureNoteRepository.findById(id);
     if (!note) throw new AppError('Lecture note not found', HTTP_STATUS.NOT_FOUND);
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && note.departmentId.toString() !== requesterDeptId) {
+    if (requesterRole === ROLES.LECTURER) {
+      if (toIdString(note.lecturerId) !== requesterId) {
+        throw new AppError('You can only delete your own lecture notes', HTTP_STATUS.FORBIDDEN);
+      }
+    } else if (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(note.departmentId) !== requesterDeptId) {
       throw new AppError('You can only delete lecture notes in your department', HTTP_STATUS.FORBIDDEN);
     }
 

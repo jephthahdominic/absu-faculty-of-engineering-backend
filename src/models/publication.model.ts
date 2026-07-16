@@ -10,6 +10,7 @@ const publicationSchema = new Schema<IPublicationDocument>(
     authors: [{ type: String, required: true, trim: true }],
     lecturerId: { type: Schema.Types.ObjectId, ref: 'Lecturer', required: true },
     departmentId: { type: Schema.Types.ObjectId, ref: 'Department', required: true },
+    isPublished: { type: Boolean, default: true },
   },
   {
     timestamps: true,
@@ -25,6 +26,7 @@ const publicationSchema = new Schema<IPublicationDocument>(
 publicationSchema.index({ departmentId: 1 });
 publicationSchema.index({ lecturerId: 1 });
 publicationSchema.index({ publicationYear: 1 });
+publicationSchema.index({ isPublished: 1 });
 publicationSchema.index({ title: 'text', journal: 'text' });
 
 export const PublicationModel = mongoose.model<IPublicationDocument>('Publication', publicationSchema);

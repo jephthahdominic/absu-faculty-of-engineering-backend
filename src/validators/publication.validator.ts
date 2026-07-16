@@ -14,6 +14,7 @@ export const createPublicationValidator = [
   }),
   body('lecturerId').isMongoId().withMessage('Valid lecturer ID is required'),
   body('departmentId').isMongoId().withMessage('Valid department ID is required'),
+  body('isPublished').optional().isBoolean().withMessage('isPublished must be a boolean'),
 ];
 
 export const updatePublicationValidator = [
@@ -24,6 +25,7 @@ export const updatePublicationValidator = [
   body('publicationUrl').optional().isURL(),
   body('authors').optional().isArray({ min: 1 }),
   body('lecturerId').optional().isMongoId(),
+  body('isPublished').optional().isBoolean().withMessage('isPublished must be a boolean'),
 ];
 
 export const getPublicationValidator = [
@@ -36,6 +38,7 @@ export const getPublicationsValidator = [
   query('search').optional().isString(),
   query('departmentId').optional().isMongoId(),
   query('publicationYear').optional().isInt({ min: 1900 }),
+  query('isPublished').optional().isBoolean(),
   query('sort').optional().isString(),
   query('order').optional().isIn(['asc', 'desc']),
 ];

@@ -8,6 +8,10 @@ export class PublicationRepository extends BaseRepository<IPublicationDocument> 
     super(PublicationModel);
   }
 
+  async findById(id: string): Promise<IPublicationDocument | null> {
+    return PublicationModel.findById(id).populate('lecturerId').populate('departmentId').exec();
+  }
+
   async findPaginated(
     filter: FilterQuery<IPublicationDocument>,
     page: number,

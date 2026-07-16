@@ -43,15 +43,19 @@ export const createPublication = asyncHandler(async (req: Request, res: Response
 
 export const getPublications = asyncHandler(async (req: Request, res: Response) => {
   const query = parsePaginationQuery(req.query as Record<string, unknown>);
-  const result = await publicationService.getPublications(query, req.user!.role as Role, req.user!.departmentId?.toString());
+  const result = await publicationService.getPublications(
+    query,
+    req.user?.role as Role | undefined,
+    req.user?.departmentId?.toString(),
+  );
   sendPaginated(res, PUBLICATION_MESSAGES.FETCHED, result.data, result.pagination);
 });
 
 export const getPublicationById = asyncHandler(async (req: Request, res: Response) => {
   const pub = await publicationService.getPublicationById(
     req.params.id,
-    req.user!.role as Role,
-    req.user!.departmentId?.toString(),
+    req.user?.role as Role | undefined,
+    req.user?.departmentId?.toString(),
   );
   sendSuccess(res, PUBLICATION_MESSAGES.FETCHED_ONE, pub);
 });

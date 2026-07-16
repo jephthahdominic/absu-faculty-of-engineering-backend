@@ -5,8 +5,10 @@ export const createLectureNoteValidator = [
   body('courseCode').trim().notEmpty().withMessage('Course code is required').isLength({ min: 3, max: 15 }),
   body('level').isIn(['100', '200', '300', '400', '500']).withMessage('Level must be 100, 200, 300, 400, or 500'),
   body('semester').isIn(['first', 'second']).withMessage('Semester must be first or second'),
-  body('lecturerId').isMongoId().withMessage('Valid lecturer ID is required'),
-  body('departmentId').isMongoId().withMessage('Valid department ID is required'),
+  // Required for admin/dean/HOD (who create on behalf of a lecturer); ignored and
+  // auto-filled from the authenticated account when a lecturer creates their own note.
+  body('lecturerId').optional().isMongoId().withMessage('Valid lecturer ID is required'),
+  body('departmentId').optional().isMongoId().withMessage('Valid department ID is required'),
 ];
 
 export const updateLectureNoteValidator = [

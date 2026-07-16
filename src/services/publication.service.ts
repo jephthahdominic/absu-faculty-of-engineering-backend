@@ -5,6 +5,7 @@ import { lecturerRepository } from '../repositories/lecturer.repository';
 import { IPublicationDocument } from '../interfaces/publication.interface';
 import { IPaginationQuery, IPaginationResult } from '../interfaces/pagination.interface';
 import { buildPaginationResult } from '../utils/pagination.util';
+import { toIdString } from '../utils/objectId.util';
 import { logger } from '../utils/logger.util';
 import { AppError } from './auth.service';
 import { HTTP_STATUS } from '../constants/httpStatus';
@@ -21,6 +22,7 @@ class PublicationService {
       authors: string[];
       lecturerId: string;
       departmentId: string;
+      isPublished?: boolean;
     },
     requesterRole: Role,
     requesterDeptId?: string,
@@ -47,6 +49,7 @@ class PublicationService {
       authors: data.authors,
       lecturerId: new Types.ObjectId(data.lecturerId),
       departmentId: new Types.ObjectId(data.departmentId),
+      isPublished: data.isPublished ?? true,
     };
 
     const pub = await publicationRepository.create(createData);
@@ -56,10 +59,10 @@ class PublicationService {
 
   async getPublications(
     query: IPaginationQuery,
-    requesterRole: Role,
+    requesterRole: Role | undefined,
     requesterDeptId?: string,
   ): Promise<IPaginationResult<IPublicationDocument>> {
-    const { page = 1, limit = 20, search, sort = 'createdAt', order = 'desc', departmentId, publicationYear } = query;
+    const { page = 1, limit = 20, search, sort = 'createdAt', order = 'desc', departmentId, publicationYear, isPublished } = query;
 
     const filter: FilterQuery<IPublicationDocument> = {};
 
@@ -67,6 +70,15 @@ class PublicationService {
       filter.departmentId = requesterDeptId;
     } else if (departmentId) {
       filter.departmentId = departmentId;
+    }
+
+    const canViewUnpublished =
+      requesterRole === ROLES.DEAN || requesterRole === ROLES.SUPER_ADMIN || requesterRole === ROLES.DEPARTMENT_ADMIN;
+
+    if (canViewUnpublished) {
+      if (isPublished !== undefined) filter.isPublished = isPublished;
+    } else {
+      filter.isPublished = true;
     }
 
     if (publicationYear) filter.publicationYear = publicationYear;
@@ -84,15 +96,24 @@ class PublicationService {
     return buildPaginationResult(data, total, page, limit);
   }
 
-  async getPublicationById(id: string, requesterRole: Role, requesterDeptId?: string): Promise<IPublicationDocument> {
+  async getPublicationById(id: string, requesterRole: Role | undefined, requesterDeptId?: string): Promise<IPublicationDocument> {
     const pub = await publicationRepository.findById(id);
     if (!pub) throw new AppError('Publication not found', HTTP_STATUS.NOT_FOUND);
 
     if (
       (requesterRole === ROLES.DEPARTMENT_ADMIN || requesterRole === ROLES.STUDENT) &&
-      pub.departmentId.toString() !== requesterDeptId
+      toIdString(pub.departmentId) !== requesterDeptId
     ) {
       throw new AppError('You can only access resources in your department', HTTP_STATUS.FORBIDDEN);
+    }
+
+    const canViewUnpublished =
+      requesterRole === ROLES.DEAN ||
+      requesterRole === ROLES.SUPER_ADMIN ||
+      (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(pub.departmentId) === requesterDeptId);
+
+    if (!pub.isPublished && !canViewUnpublished) {
+      throw new AppError('Publication not found', HTTP_STATUS.NOT_FOUND);
     }
 
     return pub;
@@ -100,14 +121,22 @@ class PublicationService {
 
   async updatePublication(
     id: string,
-    data: Partial<{ title: string; journal: string; publicationYear: number; publicationUrl: string; authors: string[]; lecturerId: string }>,
+    data: Partial<{
+      title: string;
+      journal: string;
+      publicationYear: number;
+      publicationUrl: string;
+      authors: string[];
+      lecturerId: string;
+      isPublished: boolean;
+    }>,
     requesterRole: Role,
     requesterDeptId?: string,
   ): Promise<IPublicationDocument> {
     const pub = await publicationRepository.findById(id);
     if (!pub) throw new AppError('Publication not found', HTTP_STATUS.NOT_FOUND);
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && pub.departmentId.toString() !== requesterDeptId) {
+    if (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(pub.departmentId) !== requesterDeptId) {
       throw new AppError('You can only update publications in your department', HTTP_STATUS.FORBIDDEN);
     }
 
@@ -123,6 +152,7 @@ class PublicationService {
     if (data.publicationUrl) updateData.publicationUrl = data.publicationUrl;
     if (data.authors) updateData.authors = data.authors;
     if (data.lecturerId) updateData.lecturerId = new Types.ObjectId(data.lecturerId);
+    if (data.isPublished !== undefined) updateData.isPublished = data.isPublished;
 
     const updated = await publicationRepository.updateById(id, updateData);
     logger.info(`Publication updated: ${id}`);
@@ -133,7 +163,7 @@ class PublicationService {
     const pub = await publicationRepository.findById(id);
     if (!pub) throw new AppError('Publication not found', HTTP_STATUS.NOT_FOUND);
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && pub.departmentId.toString() !== requesterDeptId) {
+    if (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(pub.departmentId) !== requesterDeptId) {
       throw new AppError('You can only delete publications in your department', HTTP_STATUS.FORBIDDEN);
     }
 

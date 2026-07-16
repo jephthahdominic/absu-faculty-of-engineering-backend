@@ -11,6 +11,7 @@ import { AppError } from './auth.service';
 import { HTTP_STATUS } from '../constants/httpStatus';
 import { ROLES, Role } from '../constants/roles';
 import { IDepartment } from '@/interfaces/department.interface';
+import { toIdString } from '../utils/objectId.util';
 
 class StudentService {
   private parseEnrollmentYear(matricNumber: string): number {
@@ -150,7 +151,7 @@ class StudentService {
     const student = await studentRepository.findById(id);
     if (!student) throw new AppError('Student not found', HTTP_STATUS.NOT_FOUND);
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && student.departmentId.toString() !== requesterDeptId) {
+    if (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(student.departmentId) !== requesterDeptId) {
       throw new AppError('You can only access students in your department', HTTP_STATUS.FORBIDDEN);
     }
 
@@ -173,7 +174,7 @@ class StudentService {
     const student = await studentRepository.findById(id);
     if (!student) throw new AppError('Student not found', HTTP_STATUS.NOT_FOUND);
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && student.departmentId.toString() !== requesterDeptId) {
+    if (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(student.departmentId) !== requesterDeptId) {
       throw new AppError('You can only update students in your department', HTTP_STATUS.FORBIDDEN);
     }
 
@@ -204,7 +205,7 @@ class StudentService {
     const student = await studentRepository.findById(id);
     if (!student) throw new AppError('Student not found', HTTP_STATUS.NOT_FOUND);
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && student.departmentId.toString() !== requesterDeptId) {
+    if (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(student.departmentId) !== requesterDeptId) {
       throw new AppError('You can only delete students in your department', HTTP_STATUS.FORBIDDEN);
     }
 

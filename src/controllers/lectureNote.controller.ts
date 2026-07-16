@@ -16,6 +16,7 @@ export const createLectureNote = asyncHandler(async (req: Request, res: Response
     req.body,
     req.file,
     req.user!.role as Role,
+    req.user!._id.toString(),
     req.user!.departmentId?.toString(),
   );
   sendCreated(res, LECTURE_NOTE_MESSAGES.CREATED, note);
@@ -42,12 +43,18 @@ export const updateLectureNote = asyncHandler(async (req: Request, res: Response
     req.body,
     req.file,
     req.user!.role as Role,
+    req.user!._id.toString(),
     req.user!.departmentId?.toString(),
   );
   sendSuccess(res, LECTURE_NOTE_MESSAGES.UPDATED, note);
 });
 
 export const deleteLectureNote = asyncHandler(async (req: Request, res: Response) => {
-  await lectureNoteService.deleteLectureNote(req.params.id, req.user!.role as Role, req.user!.departmentId?.toString());
+  await lectureNoteService.deleteLectureNote(
+    req.params.id,
+    req.user!.role as Role,
+    req.user!._id.toString(),
+    req.user!.departmentId?.toString(),
+  );
   sendSuccess(res, LECTURE_NOTE_MESSAGES.DELETED);
 });

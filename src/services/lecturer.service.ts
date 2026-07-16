@@ -2,9 +2,11 @@ import { Types } from 'mongoose';
 import { lecturerRepository } from '../repositories/lecturer.repository';
 import { departmentRepository } from '../repositories/department.repository';
 import { r2Service } from './r2.service';
+import { emailService } from './email.service';
 import { ILecturerDocument } from '../interfaces/lecturer.interface';
 import { IPaginationQuery, IPaginationResult } from '../interfaces/pagination.interface';
 import { buildPaginationResult } from '../utils/pagination.util';
+import { generateTemporaryPassword } from '../utils/password.util';
 import { logger } from '../utils/logger.util';
 import { AppError } from './auth.service';
 import { HTTP_STATUS } from '../constants/httpStatus';
@@ -21,7 +23,6 @@ class LecturerService {
       designation: string;
       bio?: string;
       departmentId: string;
-      password?: string;
     },
     requesterRole: Role,
     requesterDeptId?: string,
@@ -40,6 +41,8 @@ class LecturerService {
       throw new AppError('Lecturer email already in use', HTTP_STATUS.CONFLICT);
     }
 
+    const temporaryPassword = generateTemporaryPassword();
+
     const createData: Partial<ILecturerDocument> = {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -48,12 +51,24 @@ class LecturerService {
       designation: data.designation,
       bio: data.bio,
       departmentId: new Types.ObjectId(data.departmentId),
-      password: data.password,
+      password: temporaryPassword,
       // Admin-created lecturers are trusted by the creator's authority; no HOD verification needed.
       isVerified: true,
     };
 
     const lecturer = await lecturerRepository.create(createData);
+    console.log(`Lecturer created: ${lecturer.email} with temporary password: ${temporaryPassword}`);
+
+    try {
+      await emailService.sendLecturerCredentialsEmail(
+        lecturer.email,
+        `${lecturer.firstName} ${lecturer.lastName}`,
+        temporaryPassword,
+      );
+    } catch (error) {
+      logger.error(`Failed to send lecturer credentials email: ${error}`);
+    }
+
     logger.info(`Lecturer created: ${lecturer.email}`);
     return lecturer;
   }

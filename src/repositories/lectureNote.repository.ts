@@ -8,6 +8,10 @@ export class LectureNoteRepository extends BaseRepository<ILectureNoteDocument> 
     super(LectureNoteModel);
   }
 
+  async findById(id: string): Promise<ILectureNoteDocument | null> {
+    return LectureNoteModel.findById(id).populate('lecturerId').populate('departmentId').exec();
+  }
+
   async findPaginated(
     filter: FilterQuery<ILectureNoteDocument>,
     page: number,
