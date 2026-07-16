@@ -58,7 +58,7 @@ class DashboardService {
       StudentModel.countDocuments(filter),
       LecturerModel.countDocuments(filter),
       PublicationModel.countDocuments(filter),
-      LectureNoteModel.countDocuments(filter),
+      LectureNoteModel.countDocuments({ departmentIds: departmentId }),
       NewsModel.countDocuments(),
       EventModel.countDocuments(filter),
     ]);

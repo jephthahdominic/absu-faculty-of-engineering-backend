@@ -135,7 +135,7 @@ const options: swaggerJsdoc.Options = {
             semester: { type: 'string' },
             fileUrl: { type: 'string', format: 'uri' },
             lecturerId: { type: 'string' },
-            departmentId: { type: 'string' },
+            departmentIds: { type: 'array', items: { type: 'string' } },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
           },

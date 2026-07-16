@@ -3,6 +3,7 @@ import { lectureNoteService } from '../services/lectureNote.service';
 import { sendSuccess, sendCreated, sendPaginated } from '../utils/response.util';
 import { asyncHandler } from '../utils/asyncHandler.util';
 import { parsePaginationQuery } from '../utils/pagination.util';
+import { normalizeIdArray } from '../utils/arrayField.util';
 import { LECTURE_NOTE_MESSAGES } from '../constants/messages';
 import { Role } from '../constants/roles';
 import { AppError } from '../services/auth.service';
@@ -12,8 +13,9 @@ export const createLectureNote = asyncHandler(async (req: Request, res: Response
   if (!req.file) {
     throw new AppError('File is required', HTTP_STATUS.BAD_REQUEST);
   }
+  const departmentIds = normalizeIdArray(req.body.departmentIds);
   const note = await lectureNoteService.createLectureNote(
-    req.body,
+    { ...req.body, departmentIds },
     req.file,
     req.user!.role as Role,
     req.user!._id.toString(),
@@ -38,9 +40,13 @@ export const getLectureNoteById = asyncHandler(async (req: Request, res: Respons
 });
 
 export const updateLectureNote = asyncHandler(async (req: Request, res: Response) => {
+  const body = { ...req.body };
+  if (body.departmentIds !== undefined) {
+    body.departmentIds = normalizeIdArray(body.departmentIds);
+  }
   const note = await lectureNoteService.updateLectureNote(
     req.params.id,
-    req.body,
+    body,
     req.file,
     req.user!.role as Role,
     req.user!._id.toString(),

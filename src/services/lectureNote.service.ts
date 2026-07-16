@@ -13,6 +13,14 @@ import { HTTP_STATUS } from '../constants/httpStatus';
 import { FilterQuery } from 'mongoose';
 import { ROLES, Role } from '../constants/roles';
 
+const verifyDepartmentsExist = async (departmentIds: string[]): Promise<void> => {
+  const unique = Array.from(new Set(departmentIds));
+  const found = await departmentRepository.findAll({ _id: { $in: unique } });
+  if (found.length !== unique.length) {
+    throw new AppError('One or more departments were not found', HTTP_STATUS.NOT_FOUND);
+  }
+};
+
 class LectureNoteService {
   async createLectureNote(
     data: {
@@ -21,7 +29,7 @@ class LectureNoteService {
       level: string;
       semester: string;
       lecturerId?: string;
-      departmentId?: string;
+      departmentIds?: string[];
     },
     file: Express.Multer.File,
     requesterRole: Role,
@@ -29,23 +37,28 @@ class LectureNoteService {
     requesterDeptId?: string,
   ): Promise<ILectureNoteDocument> {
     let lecturerId = data.lecturerId;
-    let departmentId = data.departmentId;
+    let departmentIds = data.departmentIds ?? [];
 
     if (requesterRole === ROLES.LECTURER) {
       lecturerId = requesterId;
-      departmentId = requesterDeptId;
+      // Lecturers pick whichever departments the course serves — they may teach
+      // across multiple departments, not just the one they're employed under.
+    } else if (requesterRole === ROLES.DEPARTMENT_ADMIN) {
+      if (!requesterDeptId) {
+        throw new AppError('Your account is not linked to a department', HTTP_STATUS.BAD_REQUEST);
+      }
+      departmentIds = [requesterDeptId];
     }
 
-    if (!lecturerId || !departmentId) {
-      throw new AppError('lecturerId and departmentId are required', HTTP_STATUS.BAD_REQUEST);
+    if (!lecturerId) {
+      throw new AppError('lecturerId is required', HTTP_STATUS.BAD_REQUEST);
     }
 
-    if (requesterRole === ROLES.DEPARTMENT_ADMIN && departmentId !== requesterDeptId) {
-      throw new AppError('You can only add lecture notes to your department', HTTP_STATUS.FORBIDDEN);
+    if (departmentIds.length === 0) {
+      throw new AppError('At least one departmentId is required', HTTP_STATUS.BAD_REQUEST);
     }
 
-    const dept = await departmentRepository.findById(departmentId);
-    if (!dept) throw new AppError('Department not found', HTTP_STATUS.NOT_FOUND);
+    await verifyDepartmentsExist(departmentIds);
 
     const lecturer = await lecturerRepository.findById(lecturerId);
     if (!lecturer) throw new AppError('Lecturer not found', HTTP_STATUS.NOT_FOUND);
@@ -65,7 +78,7 @@ class LectureNoteService {
       fileUrl,
       fileId,
       lecturerId: new Types.ObjectId(lecturerId),
-      departmentId: new Types.ObjectId(departmentId),
+      departmentIds: departmentIds.map((id) => new Types.ObjectId(id)),
     };
 
     const note = await lectureNoteRepository.create(createData);
@@ -83,9 +96,9 @@ class LectureNoteService {
     const filter: FilterQuery<ILectureNoteDocument> = {};
 
     if (requesterRole === ROLES.DEPARTMENT_ADMIN || requesterRole === ROLES.STUDENT) {
-      filter.departmentId = requesterDeptId;
+      filter.departmentIds = requesterDeptId;
     } else if (departmentId) {
-      filter.departmentId = departmentId;
+      filter.departmentIds = departmentId;
     }
 
     if (level) filter.level = level;
@@ -109,7 +122,7 @@ class LectureNoteService {
 
     if (
       (requesterRole === ROLES.DEPARTMENT_ADMIN || requesterRole === ROLES.STUDENT) &&
-      toIdString(note.departmentId) !== requesterDeptId
+      !note.departmentIds.some((d) => toIdString(d) === requesterDeptId)
     ) {
       throw new AppError('You can only access resources in your department', HTTP_STATUS.FORBIDDEN);
     }
@@ -119,7 +132,7 @@ class LectureNoteService {
 
   async updateLectureNote(
     id: string,
-    data: Partial<{ title: string; courseCode: string; level: string; semester: string; lecturerId: string }>,
+    data: Partial<{ title: string; courseCode: string; level: string; semester: string; lecturerId: string; departmentIds: string[] }>,
     file: Express.Multer.File | undefined,
     requesterRole: Role,
     requesterId: string,
@@ -132,7 +145,10 @@ class LectureNoteService {
       if (toIdString(note.lecturerId) !== requesterId) {
         throw new AppError('You can only update your own lecture notes', HTTP_STATUS.FORBIDDEN);
       }
-    } else if (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(note.departmentId) !== requesterDeptId) {
+    } else if (
+      requesterRole === ROLES.DEPARTMENT_ADMIN &&
+      !note.departmentIds.some((d) => toIdString(d) === requesterDeptId)
+    ) {
       throw new AppError('You can only update lecture notes in your department', HTTP_STATUS.FORBIDDEN);
     }
 
@@ -144,6 +160,15 @@ class LectureNoteService {
     // Lecturers can't reassign a note to someone else — only admins may change ownership.
     if (data.lecturerId && requesterRole !== ROLES.LECTURER) {
       updateData.lecturerId = new Types.ObjectId(data.lecturerId);
+    }
+
+    if (data.departmentIds && data.departmentIds.length > 0) {
+      // A department_admin's notes stay pinned to their own department; only
+      // lecturers (re-scoping their own note) and dean/super_admin may change this.
+      if (requesterRole !== ROLES.DEPARTMENT_ADMIN) {
+        await verifyDepartmentsExist(data.departmentIds);
+        updateData.departmentIds = data.departmentIds.map((depId) => new Types.ObjectId(depId));
+      }
     }
 
     if (file) {
@@ -182,7 +207,10 @@ class LectureNoteService {
       if (toIdString(note.lecturerId) !== requesterId) {
         throw new AppError('You can only delete your own lecture notes', HTTP_STATUS.FORBIDDEN);
       }
-    } else if (requesterRole === ROLES.DEPARTMENT_ADMIN && toIdString(note.departmentId) !== requesterDeptId) {
+    } else if (
+      requesterRole === ROLES.DEPARTMENT_ADMIN &&
+      !note.departmentIds.some((d) => toIdString(d) === requesterDeptId)
+    ) {
       throw new AppError('You can only delete lecture notes in your department', HTTP_STATUS.FORBIDDEN);
     }
 

@@ -8,7 +8,7 @@ export interface ILectureNote {
   fileUrl: string;
   fileId?: string;
   lecturerId: Types.ObjectId;
-  departmentId: Types.ObjectId;
+  departmentIds: Types.ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
 }

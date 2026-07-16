@@ -10,7 +10,14 @@ const lectureNoteSchema = new Schema<ILectureNoteDocument>(
     fileUrl: { type: String, required: true },
     fileId: { type: String, default: null },
     lecturerId: { type: Schema.Types.ObjectId, ref: 'Lecturer', required: true },
-    departmentId: { type: Schema.Types.ObjectId, ref: 'Department', required: true },
+    departmentIds: {
+      type: [{ type: Schema.Types.ObjectId, ref: 'Department' }],
+      required: true,
+      validate: {
+        validator: (arr: unknown[]) => Array.isArray(arr) && arr.length > 0,
+        message: 'At least one department is required',
+      },
+    },
   },
   {
     timestamps: true,
@@ -23,7 +30,7 @@ const lectureNoteSchema = new Schema<ILectureNoteDocument>(
   },
 );
 
-lectureNoteSchema.index({ departmentId: 1 });
+lectureNoteSchema.index({ departmentIds: 1 });
 lectureNoteSchema.index({ lecturerId: 1 });
 lectureNoteSchema.index({ level: 1 });
 lectureNoteSchema.index({ semester: 1 });

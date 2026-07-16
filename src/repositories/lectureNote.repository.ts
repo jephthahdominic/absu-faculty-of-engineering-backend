@@ -9,7 +9,7 @@ export class LectureNoteRepository extends BaseRepository<ILectureNoteDocument> 
   }
 
   async findById(id: string): Promise<ILectureNoteDocument | null> {
-    return LectureNoteModel.findById(id).populate('lecturerId').populate('departmentId').exec();
+    return LectureNoteModel.findById(id).populate('lecturerId').populate('departmentIds').exec();
   }
 
   async findPaginated(
@@ -18,7 +18,7 @@ export class LectureNoteRepository extends BaseRepository<ILectureNoteDocument> 
     limit: number,
     sort: Record<string, 1 | -1>,
   ): Promise<{ data: ILectureNoteDocument[]; total: number }> {
-    return this.paginate(filter, page, limit, sort, ['lecturerId', 'departmentId']);
+    return this.paginate(filter, page, limit, sort, ['lecturerId', 'departmentIds']);
   }
 }
 
