@@ -43,11 +43,6 @@ class LectureNoteService {
       lecturerId = requesterId;
       // Lecturers pick whichever departments the course serves — they may teach
       // across multiple departments, not just the one they're employed under.
-    } else if (requesterRole === ROLES.DEPARTMENT_ADMIN) {
-      if (!requesterDeptId) {
-        throw new AppError('Your account is not linked to a department', HTTP_STATUS.BAD_REQUEST);
-      }
-      departmentIds = [requesterDeptId];
     }
 
     if (!lecturerId) {
@@ -145,11 +140,6 @@ class LectureNoteService {
       if (toIdString(note.lecturerId) !== requesterId) {
         throw new AppError('You can only update your own lecture notes', HTTP_STATUS.FORBIDDEN);
       }
-    } else if (
-      requesterRole === ROLES.DEPARTMENT_ADMIN &&
-      !note.departmentIds.some((d) => toIdString(d) === requesterDeptId)
-    ) {
-      throw new AppError('You can only update lecture notes in your department', HTTP_STATUS.FORBIDDEN);
     }
 
     const updateData: Partial<ILectureNoteDocument> = {};
@@ -165,10 +155,10 @@ class LectureNoteService {
     if (data.departmentIds && data.departmentIds.length > 0) {
       // A department_admin's notes stay pinned to their own department; only
       // lecturers (re-scoping their own note) and dean/super_admin may change this.
-      if (requesterRole !== ROLES.DEPARTMENT_ADMIN) {
-        await verifyDepartmentsExist(data.departmentIds);
-        updateData.departmentIds = data.departmentIds.map((depId) => new Types.ObjectId(depId));
-      }
+      // if (requesterRole !== ROLES.DEPARTMENT_ADMIN) {
+      await verifyDepartmentsExist(data.departmentIds);
+      updateData.departmentIds = data.departmentIds.map((depId) => new Types.ObjectId(depId));
+      // }
     }
 
     if (file) {

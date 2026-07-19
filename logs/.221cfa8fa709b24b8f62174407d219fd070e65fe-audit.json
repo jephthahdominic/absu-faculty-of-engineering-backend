@@ -6,16 +6,6 @@
     "auditLog": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\.221cfa8fa709b24b8f62174407d219fd070e65fe-audit.json",
     "files": [
         {
-            "date": 1783064223399,
-            "name": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\combined-2026-07-03.log",
-            "hash": "96ed01ea4928248a6f0806644b2e65df8b86e2bdfc9e9125c4d2b09dff3b67b7"
-        },
-        {
-            "date": 1783193398810,
-            "name": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\combined-2026-07-04.log",
-            "hash": "9ee8561b75004bc48b5c0f63480f4473f81b11b1792f393cc7d9a691603a84ab"
-        },
-        {
             "date": 1784121395905,
             "name": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\combined-2026-07-15.log",
             "hash": "feadba18d43559214f697370fbabd2ae3f2ac21d626269d5d7044934103d2f5a"
@@ -24,6 +14,21 @@
             "date": 1784191825748,
             "name": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\combined-2026-07-16.log",
             "hash": "3fcdc36771d6a381652d4ca05494970ab25c228e23335dcacaa45f0be8685a68"
+        },
+        {
+            "date": 1784272507168,
+            "name": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\combined-2026-07-17.log",
+            "hash": "f0ebd46c2054113cc734187494cceb7b3b38bf458e8c2fa0f4e07058006a96e7"
+        },
+        {
+            "date": 1784384713957,
+            "name": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\combined-2026-07-18.log",
+            "hash": "0aac44a491222791cefab0719726eeea9846c080b909c875ec9a5f76adf642f6"
+        },
+        {
+            "date": 1784479140787,
+            "name": "C:\\Users\\DIGITAL ECONOMY\\Desktop\\absu-backend\\logs\\combined-2026-07-19.log",
+            "hash": "cd3bc295d875e667a80fdd14a61d6cc6b551171f06fc1b81ac8a6c2db84bb77f"
         }
     ],
     "hashType": "sha256"
