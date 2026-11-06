@@ -26,7 +26,12 @@ export const createLectureNote = asyncHandler(async (req: Request, res: Response
 
 export const getLectureNotes = asyncHandler(async (req: Request, res: Response) => {
   const query = parsePaginationQuery(req.query as Record<string, unknown>);
-  const result = await lectureNoteService.getLectureNotes(query, req.user!.role as Role, req.user!.departmentId?.toString());
+  const result = await lectureNoteService.getLectureNotes(
+    query,
+    req.user!.role as Role,
+    req.user!.departmentId?.toString(),
+    req.user!._id.toString(),
+  );
   sendPaginated(res, LECTURE_NOTE_MESSAGES.FETCHED, result.data, result.pagination);
 });
 

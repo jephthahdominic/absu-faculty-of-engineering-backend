@@ -85,6 +85,7 @@ class LectureNoteService {
     query: IPaginationQuery,
     requesterRole: Role,
     requesterDeptId?: string,
+    requesterId?: string,
   ): Promise<IPaginationResult<ILectureNoteDocument>> {
     const { page = 1, limit = 20, search, sort = 'createdAt', order = 'desc', departmentId, level, semester } = query;
 
@@ -92,6 +93,10 @@ class LectureNoteService {
 
     if (requesterRole === ROLES.DEPARTMENT_ADMIN || requesterRole === ROLES.STUDENT) {
       filter.departmentIds = requesterDeptId;
+    } else if (requesterRole === ROLES.LECTURER) {
+      // Lecturers only manage (and list) the notes they uploaded themselves.
+      filter.lecturerId = requesterId;
+      if (departmentId) filter.departmentIds = departmentId;
     } else if (departmentId) {
       filter.departmentIds = departmentId;
     }
