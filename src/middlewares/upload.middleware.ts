@@ -31,6 +31,14 @@ const documentFilter = (_req: Request, file: Express.Multer.File, cb: multer.Fil
   }
 };
 
+const pdfFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback): void => {
+  if (file.mimetype === 'application/pdf') {
+    cb(null, true);
+  } else {
+    cb(new AppError('Only PDF files are allowed', HTTP_STATUS.BAD_REQUEST));
+  }
+};
+
 export const uploadImage = multer({
   storage: multer.memoryStorage(),
   fileFilter: imageFilter,
@@ -48,3 +56,9 @@ export const uploadOptionalImage = multer({
   fileFilter: imageFilter,
   limits: { fileSize: MAX_IMAGE_SIZE },
 }).single('image');
+
+export const uploadPdf = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: pdfFilter,
+  limits: { fileSize: MAX_DOC_SIZE },
+}).single('file');

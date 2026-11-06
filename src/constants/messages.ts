@@ -69,6 +69,20 @@ export const LECTURE_NOTE_MESSAGES = {
   NOT_FOUND: 'Lecture note not found',
 };
 
+export const ASSIGNMENT_MESSAGES = {
+  CREATED: 'Assignment created successfully',
+  UPDATED: 'Assignment updated successfully',
+  DELETED: 'Assignment deleted successfully',
+  FETCHED: 'Assignments fetched successfully',
+  FETCHED_ONE: 'Assignment fetched successfully',
+  NOT_FOUND: 'Assignment not found',
+  SUBMITTED: 'Solution submitted successfully',
+  SUBMISSIONS_FETCHED: 'Submissions fetched successfully',
+  SUBMISSION_FETCHED: 'Submission fetched successfully',
+  SUBMISSION_NOT_FOUND: 'Submission not found',
+  SCORED: 'Submission scored successfully',
+};
+
 export const NEWS_MESSAGES = {
   CREATED: 'News created successfully',
   UPDATED: 'News updated successfully',
